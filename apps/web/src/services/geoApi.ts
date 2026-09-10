@@ -1,19 +1,4 @@
-import { ApiError } from './signupApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
-}
+import { apiFetch } from '../utils/apiClient';
 
 function buildQueryString(params: Record<string, string | number | undefined>): string {
   const entries = Object.entries(params).filter(
@@ -94,22 +79,14 @@ export async function getNearbyRiders(params: NearbyRidersParams): Promise<Rider
     radius: params.radius,
     limit: params.limit,
   });
-  const response = await fetch(`${API_BASE_URL}/geo/nearby-riders${qs}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<RiderCandidate[]>(response);
+  const response = await apiFetch(`/geo/nearby-riders${qs}`);
+  return response.json() as Promise<RiderCandidate[]>;
 }
 
 export async function searchAddress(query: string): Promise<Address[]> {
   const qs = buildQueryString({ q: query });
-  const response = await fetch(`${API_BASE_URL}/geo/search${qs}`, {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-  return handleResponse<Address[]>(response);
+  const response = await apiFetch(`/geo/search${qs}`);
+  return response.json() as Promise<Address[]>;
 }
 
 export interface HeatmapParams {
@@ -128,13 +105,8 @@ export async function getHeatmap(params: HeatmapParams): Promise<HeatmapCell[]> 
     maxLng: params.maxLng,
     resolution: params.resolution,
   });
-  const response = await fetch(`${API_BASE_URL}/geo/heatmap${qs}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<HeatmapCell[]>(response);
+  const response = await apiFetch(`/geo/heatmap${qs}`);
+  return response.json() as Promise<HeatmapCell[]>;
 }
 
 export interface ZonesParams {
@@ -151,13 +123,8 @@ export async function getZones(params: ZonesParams): Promise<ZoneCluster[]> {
     minLng: params.minLng,
     maxLng: params.maxLng,
   });
-  const response = await fetch(`${API_BASE_URL}/geo/zones${qs}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<ZoneCluster[]>(response);
+  const response = await apiFetch(`/geo/zones${qs}`);
+  return response.json() as Promise<ZoneCluster[]>;
 }
 
 export interface ETAParams {
@@ -174,13 +141,8 @@ export async function getETA(params: ETAParams): Promise<ETAResult> {
     destLat: params.destLat,
     destLng: params.destLng,
   });
-  const response = await fetch(`${API_BASE_URL}/geo/eta${qs}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<ETAResult>(response);
+  const response = await apiFetch(`/geo/eta${qs}`);
+  return response.json() as Promise<ETAResult>;
 }
 
 export interface DistanceParams {
@@ -197,13 +159,8 @@ export async function getDistance(params: DistanceParams): Promise<DistanceResul
     destLat: params.destLat,
     destLng: params.destLng,
   });
-  const response = await fetch(`${API_BASE_URL}/geo/distance${qs}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<DistanceResult>(response);
+  const response = await apiFetch(`/geo/distance${qs}`);
+  return response.json() as Promise<DistanceResult>;
 }
 
 export interface ServiceAreaContainsParams {
@@ -219,14 +176,8 @@ export async function checkServiceAreaContains(
     lat: params.lat,
     lng: params.lng,
   });
-  const response = await fetch(
-    `${API_BASE_URL}/geo/service-area/${encodeURIComponent(areaId)}/contains${qs}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
+  const response = await apiFetch(
+    `/geo/service-area/${encodeURIComponent(areaId)}/contains${qs}`
   );
-  return handleResponse<ServiceAreaContainsResult>(response);
+  return response.json() as Promise<ServiceAreaContainsResult>;
 }
