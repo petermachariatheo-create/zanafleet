@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+import { apiFetch, ApiError } from '../utils/apiClient';
 
 export interface PlaceCustomerOrderInput {
   businessId: string;
@@ -29,16 +29,92 @@ export interface PlaceCustomerOrderInput {
   paymentMethod: string;
 }
 
-export const placeCustomerOrder = async (input: PlaceCustomerOrderInput) => {
-  const response = await fetch(`${API_URL}/orders/customer`, {
+export interface PlaceCustomerOrderResult {
+  orderId: string;
+  deliveryId: string;
+  paymentIntentId: string;
+  totalAmount: number;
+  status: string;
+}
+
+export interface Order {
+  id: string;
+  businessId: string;
+  customerName?: string;
+  customerPhone?: string;
+  itemSummary?: string;
+  itemMetadata?: Record<string, unknown>;
+  status?: string;
+  scheduledTime?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface OrdersListResponse {
+  data: Order[];
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export async function placeCustomerOrder(input: PlaceCustomerOrderInput): Promise<PlaceCustomerOrderResult> {
+  const response = await apiFetch('/orders/customer', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-  return response.json();
-};
+  return response.json() as Promise<PlaceCustomerOrderResult>;
+}
 
-export const getOrderHistory = async () => {
-  const response = await fetch(`${API_URL}/orders`);
-  return response.json();
-};
+export async function createOrder(input: {
+  businessId: string;
+  itemSummary?: string;
+  itemMetadata?: Record<string, unknown>;
+  customerName?: string;
+  customerPhone?: string;
+  scheduledTime?: Date;
+}): Promise<{ id: string }> {
+  const response = await apiFetch('/orders', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return response.json() as Promise<{ id: string }>;
+}
+
+export async function getOrderById(orderId: string): Promise<Order> {
+  const response = await apiFetch(`/orders/${encodeURIComponent(orderId)}`);
+  return response.json() as Promise<Order>;
+}
+
+export async function getOrderHistory(params?: {
+  page?: number;
+  limit?: number;
+  sort?: string;
+  filter?: Record<string, unknown>;
+  search?: string;
+}): Promise<OrdersListResponse> {
+  const queryParams = new URLSearchParams();
+  if (params?.page) queryParams.set('page', String(params.page));
+  if (params?.limit) queryParams.set('limit', String(params.limit));
+  if (params?.sort) queryParams.set('sort', params.sort);
+  if (params?.filter) queryParams.set('filter', JSON.stringify(params.filter));
+  if (params?.search) queryParams.set('search', params.search);
+
+  const queryString = queryParams.toString();
+  const path = queryString ? `/orders?${queryString}` : '/orders';
+  const response = await apiFetch(path);
+  return response.json() as Promise<OrdersListResponse>;
+}
+
+export async function updateOrderStatus(
+  orderId: string,
+  updates: Partial<Pick<Order, 'status' | 'itemSummary' | 'customerName' | 'customerPhone' | 'scheduledTime'>>
+): Promise<Order> {
+  const response = await apiFetch(`/orders/${encodeURIComponent(orderId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+  return response.json() as Promise<Order>;
+}
