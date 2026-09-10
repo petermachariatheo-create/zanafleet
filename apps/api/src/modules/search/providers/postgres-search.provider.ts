@@ -41,21 +41,22 @@ export class PostgresSearchProvider implements ISearchProvider {
     }
 
     if (location && radiusMeters) {
-      qb.andWhere('ST_DWithin(doc.location, ST_SetSRID(ST_Point(:lng, :lat), 4326), :radius)', {
-        lng: location.longitude,
-        lat: location.latitude,
+      const pointWkt = `POINT(${location.longitude} ${location.latitude})`;
+      qb.andWhere('ST_DWithin(doc.location::geography, ST_GeomFromText(:point, 4326)::geography, :radius)', {
+        point: pointWkt,
         radius: radiusMeters,
       });
     }
 
     // Sorting
     if (sortBy === 'distance' && location) {
-      qb.addSelect('ST_Distance(doc.location, ST_SetSRID(ST_Point(:lng, :lat), 4326))', 'distance');
+      const pointWkt = `POINT(${location.longitude} ${location.latitude})`;
+      qb.addSelect('ST_Distance(doc.location::geography, ST_GeomFromText(:point, 4326)::geography)', 'distance');
+      qb.setParameters({ point: pointWkt });
       qb.orderBy('distance', 'ASC');
     } else if (sortBy === 'newest') {
       qb.orderBy('doc.createdAt', 'DESC');
     } else if (query) {
-      // Sort by rank
       qb.addSelect("ts_rank(doc.tsv, websearch_to_tsquery('english', :query))", 'rank');
       qb.orderBy('rank', 'DESC');
     } else {
@@ -73,8 +74,9 @@ export class PostgresSearchProvider implements ISearchProvider {
   }
 
   async index(document: SearchDocument): Promise<void> {
+    const { v4: uuidv4 } = await import('uuid');
     const entity = new SearchDocumentEntity();
-    entity.id = document.id || `${document.entityType}-${document.entityId}`; // Custom ID generation for stability if needed
+    entity.id = document.id || uuidv4(); // Use UUID for primary key
     entity.entityId = document.entityId;
     entity.entityType = document.entityType;
     entity.workspaceId = document.workspaceId;
@@ -90,6 +92,11 @@ export class PostgresSearchProvider implements ISearchProvider {
     }
 
     await this.repository.save(entity);
+
+    await this.repository.query(
+      `UPDATE search_documents SET tsv = setweight(to_tsvector('english', COALESCE($1, '')), 'A') || setweight(to_tsvector('english', COALESCE($2, '')), 'B') WHERE id = $3`,
+      [document.title, document.description || '', entity.id]
+    );
   }
 
   async delete(entityId: string, entityType: string): Promise<void> {

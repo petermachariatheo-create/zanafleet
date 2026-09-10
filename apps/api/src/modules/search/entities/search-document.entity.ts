@@ -32,11 +32,12 @@ export class SearchDocumentEntity {
   })
   location!: GeoJsonPoint | null;
 
+  @Column('tsvector', { nullable: true })
+  tsv!: string | null;
+
   @CreateDateColumn({ type: 'timestamp with time zone' })
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt!: Date;
-
-  // The 'tsv' column is managed by DB trigger for FTS
 }

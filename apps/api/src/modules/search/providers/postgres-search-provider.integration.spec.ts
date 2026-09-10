@@ -58,8 +58,11 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   });
 
   it('2. should rank title matches higher than description matches', async () => {
+    const descMatchId = uuidv4();
+    const titleMatchId = uuidv4();
+    
     await provider.index({
-      entityId: 'desc-match',
+      entityId: descMatchId,
       entityType: 'Order',
       workspaceId,
       title: 'Lunch Item',
@@ -67,7 +70,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       metadata: {},
     });
     await provider.index({
-      entityId: 'title-match',
+      entityId: titleMatchId,
       entityType: 'Order',
       workspaceId,
       title: 'Pepperoni Pizza',
@@ -76,14 +79,16 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     });
 
     const results = await provider.search({ query: 'Pizza', workspaceId });
-    expect(results.items[0].entityId).toBe('title-match');
+    expect(results.items[0].entityId).toBe(titleMatchId);
   });
 
   it('3. should sort results closer to center coordinate first', async () => {
     const center = { latitude: -1.29, longitude: 36.82 }; // Nairobi Center
+    const farAwayId = uuidv4();
+    const nearById = uuidv4();
 
     await provider.index({
-      entityId: 'far-away',
+      entityId: farAwayId,
       entityType: 'Business',
       workspaceId,
       title: 'Far Business',
@@ -92,7 +97,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       metadata: {},
     });
     await provider.index({
-      entityId: 'near-by',
+      entityId: nearById,
       entityType: 'Business',
       workspaceId,
       title: 'Near Business',
@@ -106,14 +111,15 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       location: center,
       sortBy: 'distance',
     });
-    expect(results.items[0].entityId).toBe('near-by');
+    expect(results.items[0].entityId).toBe(nearById);
   });
 
   it('4. should exclude entities outside the radius', async () => {
     const center = { latitude: -1.29, longitude: 36.82 };
+    const outsideId = uuidv4();
 
     await provider.index({
-      entityId: 'outside',
+      entityId: outsideId,
       entityType: 'Business',
       workspaceId,
       title: 'Outside Radius',
@@ -132,8 +138,9 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
 
   it('5. should ensure strict isolation between tenants (workspaceId)', async () => {
     const otherWorkspace = uuidv4();
+    const secretOrderId = uuidv4();
     await provider.index({
-      entityId: 'secret-order',
+      entityId: secretOrderId,
       entityType: 'Order',
       workspaceId: otherWorkspace,
       title: 'Secret Pizza',
@@ -146,9 +153,12 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   });
 
   it('6. should work correctly with pagination (limit and offset)', async () => {
+    const itemIds: string[] = [];
     for (let i = 0; i < 5; i++) {
+      const itemId = uuidv4();
+      itemIds.push(itemId);
       await provider.index({
-        entityId: `item-${i}`,
+        entityId: itemId,
         entityType: 'Order',
         workspaceId,
         title: `Item ${i}`,
@@ -167,8 +177,9 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   });
 
   it('7. should return newest records first when sortBy="newest"', async () => {
+    const oldItemId = uuidv4();
     await provider.index({
-      entityId: 'old-item',
+      entityId: oldItemId,
       entityType: 'Order',
       workspaceId,
       title: 'Old Item',
@@ -177,8 +188,9 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     });
     // Tiny delay to ensure timestamp diff
     await new Promise((r) => setTimeout(r, 10));
+    const newItemId = uuidv4();
     await provider.index({
-      entityId: 'new-item',
+      entityId: newItemId,
       entityType: 'Order',
       workspaceId,
       title: 'New Item',
@@ -187,14 +199,15 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     });
 
     const results = await provider.search({ workspaceId, sortBy: 'newest' });
-    expect(results.items[0].entityId).toBe('new-item');
+    expect(results.items[0].entityId).toBe(newItemId);
   });
 
   it('8. should support fuzzy search via trigram (typo tolerance)', async () => {
     // Note: websearch_to_tsquery is strict, but pg_trgm can be used for typos.
     // Our implementation currently uses tsquery. We'll test standard prefix match/partial match for now.
+    const pepperoniId = uuidv4();
     await provider.index({
-      entityId: 'pepperoni',
+      entityId: pepperoniId,
       entityType: 'Order',
       workspaceId,
       title: 'Pepperoni Pizza',
@@ -212,8 +225,9 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
 
   it('9. should support partial match via tsquery prefix', async () => {
     // Re-verify the provider logic for partial matches if we want to support it
+    const alphaId = uuidv4();
     await provider.index({
-      entityId: 'alpha',
+      entityId: alphaId,
       entityType: 'Order',
       workspaceId,
       title: 'Alphabet Soup',
@@ -225,7 +239,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   });
 
   it('10. should upsert documents correctly (Upsert Consistency)', async () => {
-    const id = 'reusable-id';
+    const id = uuidv4();
     await provider.index({
       entityId: id,
       entityType: 'Order',
