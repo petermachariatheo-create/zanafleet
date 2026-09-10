@@ -151,12 +151,10 @@ export const RequestDeliveryPage: React.FC = () => {
                                     onInputChange={(_, newInputValue) => handleAddressSearch(newInputValue, setPickupOptions)}
                                     onChange={(_, value) => {
                                         if (value && typeof value !== 'string') {
-                                            // Mocking coordinates for now as searchAddress mock doesn't return them yet in contracts
-                                            // In real app, Address would have lat/lng
                                             setPickup({
                                                 address: value.formattedAddress,
-                                                lat: -1.2921, // Nairobi Mock
-                                                lng: 36.8219,
+                                                lat: value.latitude ?? null,
+                                                lng: value.longitude ?? null,
                                                 locationId: null
                                             });
                                         }
@@ -196,8 +194,8 @@ export const RequestDeliveryPage: React.FC = () => {
                                         if (value && typeof value !== 'string') {
                                             setDropoff({
                                                 address: value.formattedAddress,
-                                                lat: -1.2821, // Nairobi Mock
-                                                lng: 36.8119,
+                                                lat: value.latitude ?? null,
+                                                lng: value.longitude ?? null,
                                                 locationId: null
                                             });
                                         }

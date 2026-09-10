@@ -21,6 +21,8 @@ export interface Address {
   region?: string;
   postalCode?: string;
   country?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface RiderCandidate {
