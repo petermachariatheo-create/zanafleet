@@ -1,4 +1,4 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+import { apiFetch } from '../utils/apiClient';
 
 export interface Customer {
   id: string;
@@ -8,34 +8,36 @@ export interface Customer {
   email?: string;
 }
 
-export const searchCustomers = async (businessId: string, query: string): Promise<Customer[]> => {
-  const response = await fetch(`${API_URL}/customers?businessId=${businessId}&query=${query}`);
-  const body = await response.json();
+export async function searchCustomers(businessId: string, query: string): Promise<Customer[]> {
+  const path = `/customers?businessId=${encodeURIComponent(businessId)}&query=${encodeURIComponent(query)}`;
+  const response = await apiFetch(path);
+  const body = await response.json() as { data: Customer[] };
   return body.data || [];
-};
+}
 
-export const getCustomerActivity = async (businessId: string, customerId: string): Promise<any> => {
-  const response = await fetch(
-    `${API_URL}/customers/me/activity/${businessId}?customerId=${customerId}`
-  );
-  const body = await response.json();
+export async function getCustomerActivity(businessId: string, customerId: string): Promise<any> {
+  const path = `/customers/me/activity/${businessId}?customerId=${encodeURIComponent(customerId)}`;
+  const response = await apiFetch(path);
+  const body = await response.json() as { data: any };
   return body.data;
-};
+}
 
-export const getBusinessAvailability = async (): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/customers/businesses/availability`);
-  const body = await response.json();
+export async function getBusinessAvailability(): Promise<any[]> {
+  const response = await apiFetch('/customers/businesses/availability');
+  const body = await response.json() as { data: any[] };
   return body.data || [];
-};
+}
 
-export const getShopperOrders = async (customerId: string): Promise<any[]> => {
-  const response = await fetch(`${API_URL}/customers/me/orders?customerId=${customerId}`);
-  const body = await response.json();
+export async function getShopperOrders(customerId: string): Promise<any[]> {
+  const path = `/customers/me/orders?customerId=${encodeURIComponent(customerId)}`;
+  const response = await apiFetch(path);
+  const body = await response.json() as { data: any[] };
   return body.data || [];
-};
+}
 
-export const getShopperInsights = async (customerId: string): Promise<any> => {
-  const response = await fetch(`${API_URL}/customers/me/insights?customerId=${customerId}`);
-  const body = await response.json();
+export async function getShopperInsights(customerId: string): Promise<any> {
+  const path = `/customers/me/insights?customerId=${encodeURIComponent(customerId)}`;
+  const response = await apiFetch(path);
+  const body = await response.json() as { data: any };
   return body.data;
-};
+}
