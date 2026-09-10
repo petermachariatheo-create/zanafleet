@@ -25,6 +25,7 @@ import {
     Storefront as StoreIcon,
 } from '@mui/icons-material';
 import { GeoMap, GeoPoint } from '../../components/common';
+import { getDelivery } from '../../services/deliveryApi';
 
 const STAGES = ['Confirmed', 'Preparing', 'Out for Delivery', 'Delivered'];
 
@@ -35,21 +36,26 @@ export const OrderTrackingPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Mocking order fetch for now
-        const timer = setTimeout(() => {
-            setOrder({
-                orderId: id,
-                status: 'Out for Delivery',
-                itemSummary: '2kg Sugar, 1L Milk',
-                totalAmount: 450,
-                merchant: { name: 'SuperMart Nairobi', lat: -1.2864, lng: 36.8172 },
-                customer: { name: 'John Doe', lat: -1.2921, lng: 36.8219 },
-                rider: { name: 'Karanja B.', phone: '+254700000000', lat: -1.2890, lng: 36.8190 },
-                currentStage: 2,
-            });
-            setLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
+        const fetchDelivery = async () => {
+            if (!id) return;
+            try {
+                const delivery = await getDelivery(id);
+                setOrder({
+                    orderId: delivery.id,
+                    status: delivery.status,
+                    itemSummary: delivery.itemSummary || 'Order',
+                    merchant: { name: 'Store', lat: -1.2864, lng: 36.8172 },
+                    customer: { name: 'Customer', lat: -1.2921, lng: 36.8219 },
+                    rider: delivery.assignedRiderName ? { name: delivery.assignedRiderName, phone: delivery.assignedRiderPhone || '', lat: -1.2890, lng: 36.8190 } : null,
+                    currentStage: Math.min(Math.max(parseInt(delivery.status) || 0, 0), STAGES.length - 1),
+                });
+            } catch (err) {
+                console.error('Failed to fetch delivery', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDelivery();
     }, [id]);
 
     if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}><CircularProgress /></Box>;

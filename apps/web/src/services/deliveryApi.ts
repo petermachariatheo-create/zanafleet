@@ -39,3 +39,29 @@ export async function requestDelivery(input: RequestDeliveryInput): Promise<Requ
   });
   return response.json() as Promise<RequestDeliveryResult>;
 }
+
+export interface Delivery {
+  id: string;
+  status: string;
+  orderId?: string;
+  businessId: string;
+  customerName?: string;
+  customerPhone?: string;
+  pickupLocationId?: string;
+  dropoffLocationId?: string;
+  assignedRiderId?: string;
+  assignedRiderName?: string;
+  assignedRiderPhone?: string;
+  scheduledPickupTime?: string;
+  scheduledDropoffTime?: string;
+  eta?: string;
+  paymentStatus?: string;
+  itemSummary?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function getDelivery(deliveryId: string): Promise<Delivery> {
+  const response = await apiFetch(`/deliveries/${encodeURIComponent(deliveryId)}`);
+  return response.json() as Promise<Delivery>;
+}
