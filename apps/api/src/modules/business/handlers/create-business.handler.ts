@@ -71,6 +71,7 @@ export class CreateBusinessCommandHandler implements ICommandHandler<CreateBusin
         businessType: command.businessType,
         email: command.email,
         createdAt: now,
+        workspaceId: command.workspaceId ?? '00000000-0000-0000-0000-000000000001',
       });
 
       // Step 3: Persist to PostgreSQL

@@ -35,7 +35,7 @@ export class RiderEntity {
   @PrimaryColumn('uuid')
   id!: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 255, name: 'full_name' })
   fullName!: string;
 
   @Column('varchar', { length: 20 })
@@ -111,6 +111,7 @@ export class RiderEntity {
     saccoId: string | null;
     email?: string | null;
     createdAt: Date;
+    workspaceId?: string;
   }): RiderEntity {
     const entity = new RiderEntity();
     entity.id = data.riderId;
@@ -121,6 +122,7 @@ export class RiderEntity {
     entity.vehicleType = data.vehicleType;
     entity.saccoId = data.saccoId;
     entity.email = data.email ?? null;
+    entity.workspaceId = data.workspaceId ?? '00000000-0000-0000-0000-000000000001';
     entity.createdAt = data.createdAt;
     return entity;
   }

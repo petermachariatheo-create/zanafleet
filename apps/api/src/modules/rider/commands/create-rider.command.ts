@@ -37,6 +37,7 @@ export const CreateRiderCommandSchema = z.object({
     .toLowerCase()
     .optional()
     .or(z.null()),
+  workspaceId: z.string().uuid('workspaceId must be a valid UUID').optional(),
 });
 
 export type CreateRiderCommandInput = z.infer<typeof CreateRiderCommandSchema>;
@@ -54,6 +55,7 @@ export class CreateRiderCommand {
   readonly vehicleType: VehicleType;
   readonly saccoId: string | null;
   readonly email: string | null;
+  readonly workspaceId?: string;
 
   constructor(input: CreateRiderCommandInput) {
     this.fullName = input.fullName;
@@ -63,6 +65,7 @@ export class CreateRiderCommand {
     this.vehicleType = input.vehicleType;
     this.saccoId = input.saccoId ?? null;
     this.email = input.email ?? null;
+    this.workspaceId = input.workspaceId;
   }
 
   /**

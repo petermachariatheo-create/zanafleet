@@ -18,6 +18,7 @@ export const CreateSaccoCommandSchema = z.object({
     .regex(/^[\d\-+\s()]+$/, 'Contact phone must contain only digits, spaces, and valid symbols')
     .min(5, 'Contact phone must be at least 5 characters')
     .max(20, 'Contact phone must not exceed 20 characters'),
+  workspaceId: z.string().uuid('workspaceId must be a valid UUID').optional(),
 });
 
 export type CreateSaccoCommandInput = z.infer<typeof CreateSaccoCommandSchema>;
@@ -31,11 +32,13 @@ export class CreateSaccoCommand {
   readonly name: string;
   readonly location: LocationInput;
   readonly contactPhone: string;
+  readonly workspaceId?: string;
 
   constructor(input: CreateSaccoCommandInput) {
     this.name = input.name;
     this.location = input.location;
     this.contactPhone = input.contactPhone;
+    this.workspaceId = input.workspaceId;
   }
 
   /**

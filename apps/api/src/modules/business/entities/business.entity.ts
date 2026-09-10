@@ -29,7 +29,7 @@ export class BusinessEntity {
   @PrimaryColumn('uuid')
   id!: string;
 
-  @Column('varchar', { length: 255 })
+  @Column('varchar', { length: 255, name: 'business_name' })
   businessName!: string;
 
   @Column('varchar', { length: 20 })
@@ -89,6 +89,7 @@ export class BusinessEntity {
     businessType: BusinessType;
     email?: string | null;
     createdAt: Date;
+    workspaceId?: string;
   }): BusinessEntity {
     const entity = new BusinessEntity();
     entity.id = data.businessId;
@@ -97,6 +98,7 @@ export class BusinessEntity {
     entity.location = data.location;
     entity.businessType = data.businessType;
     entity.email = data.email ?? null;
+    entity.workspaceId = data.workspaceId ?? '00000000-0000-0000-0000-000000000001';
     entity.createdAt = data.createdAt;
     return entity;
   }

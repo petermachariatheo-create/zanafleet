@@ -31,6 +31,7 @@ export const CreateBusinessCommandSchema = z.object({
     .toLowerCase()
     .optional()
     .or(z.null()),
+  workspaceId: z.string().uuid('workspaceId must be a valid UUID').optional(),
 });
 
 export type CreateBusinessCommandInput = z.infer<typeof CreateBusinessCommandSchema>;
@@ -46,6 +47,7 @@ export class CreateBusinessCommand {
   readonly location: LocationInput;
   readonly businessType: BusinessType;
   readonly email: string | null;
+  readonly workspaceId?: string;
 
   constructor(input: CreateBusinessCommandInput) {
     this.businessName = input.businessName;
@@ -53,6 +55,7 @@ export class CreateBusinessCommand {
     this.location = input.location;
     this.businessType = input.businessType;
     this.email = input.email ?? null;
+    this.workspaceId = input.workspaceId;
   }
 
   /**

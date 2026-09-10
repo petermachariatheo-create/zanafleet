@@ -74,12 +74,14 @@ export class SaccoEntity {
     location: LocationData;
     contactPhone: string;
     createdAt: Date;
+    workspaceId?: string;
   }): SaccoEntity {
     const entity = new SaccoEntity();
     entity.id = data.saccoId;
     entity.name = data.name;
     entity.location = data.location;
     entity.contactPhone = data.contactPhone;
+    entity.workspaceId = data.workspaceId ?? '00000000-0000-0000-0000-000000000001';
     entity.createdAt = data.createdAt;
     return entity;
   }

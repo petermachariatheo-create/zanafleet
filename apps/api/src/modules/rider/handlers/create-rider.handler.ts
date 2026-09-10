@@ -120,6 +120,7 @@ export class CreateRiderCommandHandler implements ICommandHandler<CreateRiderCom
         saccoId: command.saccoId,
         email: command.email,
         createdAt: now,
+        workspaceId: command.workspaceId ?? '00000000-0000-0000-0000-000000000001',
       });
 
       // Step 5: Persist to PostgreSQL
