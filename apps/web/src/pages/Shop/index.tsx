@@ -27,6 +27,8 @@ import { useAuth } from '../../hooks/useAuth';
 import { placeCustomerOrder } from '../../services/orderApi';
 import { searchAddress, Address } from '../../services/geoApi';
 import { getCustomerActivity, getBusinessAvailability } from '../../services/customerApi';
+import { getMyBusinesses } from '../../services/dashboardApi';
+import { getOrderHistory } from '../../services/orderApi';
 
 interface BusinessAvailability {
     businessId: string;
@@ -45,10 +47,6 @@ interface CustomerActivity {
 }
 
 import { CheckCircle as CheckCircleIcon, Error as ErrorIcon, Stars as StarsIcon } from '@mui/icons-material';
-// Mock business service or reuse dashboardApi if it has listBusinesses
-// Mock business service or reuse dashboardApi if it has listBusinesses
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 interface LocationState {
     address: string | null;
@@ -60,7 +58,10 @@ interface LocationState {
 interface Business {
     businessId: string;
     businessName: string;
-    location: any;
+    location?: {
+        locationId?: string;
+        humanReadableName?: string;
+    };
 }
 
 export const ShopPage: React.FC = () => {
@@ -92,13 +93,13 @@ export const ShopPage: React.FC = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [busRes, histRes, availRes] = await Promise.all([
-                    fetch(`${API_URL}/businesses`).then(res => res.json()),
-                    fetch(`${API_URL}/orders`).then(res => res.json()),
+                const [businessesRes, ordersRes, availRes] = await Promise.all([
+                    getMyBusinesses(user?.token || ''),
+                    getOrderHistory({ limit: 50 }),
                     getBusinessAvailability()
                 ]);
-                setBusinesses(busRes.data || []);
-                setOrderHistory(histRes.data || []);
+                setBusinesses(businessesRes.map(b => ({ businessId: b.businessId, businessName: b.businessName })));
+                setOrderHistory(ordersRes.data || []);
 
                 const availMap: Record<string, BusinessAvailability> = {};
                 (availRes || []).forEach((a: BusinessAvailability) => {
@@ -107,11 +108,13 @@ export const ShopPage: React.FC = () => {
                 setAvailabilities(availMap);
 
             } catch (err) {
-                console.error('Failed to fetch shop data');
+                console.error('Failed to fetch shop data', err);
             }
         };
-        fetchData();
-    }, []);
+        if (user?.token) {
+            fetchData();
+        }
+    }, [user]);
 
     useEffect(() => {
         if (selectedBusiness && user) {
@@ -248,7 +251,7 @@ export const ShopPage: React.FC = () => {
                                             )}
                                         </Box>
                                         <Typography variant="body2" color="text.secondary">
-                                            {b.location?.humanReadableName || 'Nearby Store'}
+                                            {b.location?.humanReadableName || b.businessName}
                                         </Typography>
                                     </CardContent>
                                 </Card>
@@ -331,16 +334,16 @@ export const ShopPage: React.FC = () => {
                                             options={dropoffOptions}
                                             getOptionLabel={(option) => typeof option === 'string' ? option : option.formattedAddress}
                                             onInputChange={(_, value) => handleAddressSearch(value)}
-                                            onChange={(_, value) => {
-                                                if (value && typeof value !== 'string') {
-                                                    setDropoff({
-                                                        address: value.formattedAddress,
-                                                        lat: -1.2821, // Nairobi Mock
-                                                        lng: 36.8119,
-                                                        locationId: null
-                                                    });
-                                                }
-                                            }}
+                                    onChange={(_, value) => {
+                                        if (value && typeof value !== 'string') {
+                                            setDropoff({
+                                                address: value.formattedAddress,
+                                                lat: value.latitude ?? null,
+                                                lng: value.longitude ?? null,
+                                                locationId: null
+                                            });
+                                        }
+                                    }}
                                             renderInput={(params) => <TextField {...params} label="Search Delivery Address" required />}
                                         />
                                     </Grid>
@@ -385,25 +388,25 @@ export const ShopPage: React.FC = () => {
             ) : (
                 <Stack spacing={2}>
                     {orderHistory.map((order) => (
-                        <Card key={order.orderId}>
+                        <Card key={order.id}>
                             <CardContent>
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                                        Order #{order.orderId.split('-')[0].toUpperCase()}
+                                        Order #{order.id.split('-')[0].toUpperCase()}
                                     </Typography>
                                     <Typography variant="body2" color="primary">
-                                        {order.status}
+                                        {order.status || 'PENDING'}
                                     </Typography>
                                 </Box>
                                 <Typography variant="body1">{order.itemSummary || 'Custom Order'}</Typography>
                                 <Typography variant="body2" color="text.secondary">
-                                    {new Date(order.createdAt).toLocaleDateString()} • {order.totalAmount} {order.currency || 'KES'}
+                                    {new Date(order.createdAt).toLocaleDateString()}
                                 </Typography>
                                 <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                                     <Button
                                         variant="outlined"
                                         size="small"
-                                        onClick={() => navigate(`/order/${order.orderId}/track`)}
+                                        onClick={() => navigate(`/order/${order.id}/track`)}
                                     >
                                         Track Order
                                     </Button>
