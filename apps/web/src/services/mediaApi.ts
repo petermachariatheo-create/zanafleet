@@ -1,6 +1,4 @@
-import { ApiError } from './signupApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+import { apiFetch, ApiError } from '../utils/apiClient';
 
 export interface CreateMediaAssetInput {
   filename: string;
@@ -25,45 +23,16 @@ export interface SignedUrlResponse {
   method: 'GET' | 'PUT';
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
-}
-
 export async function createMediaAsset(
   input: CreateMediaAssetInput,
   token?: string
 ): Promise<CreateMediaAssetResponse> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/media/assets`, {
+  const response = await apiFetch('/media/assets', {
     method: 'POST',
-    headers,
+    token,
     body: JSON.stringify(input),
   });
-
-  const result = await handleResponse<{
-    mediaAssetId: string;
-    storageKey: string;
-  }>(response);
-
-  return {
-    mediaAssetId: result.mediaAssetId,
-    storageKey: result.storageKey,
-  };
+  return response.json() as Promise<CreateMediaAssetResponse>;
 }
 
 export async function getSignedUrl(
@@ -72,11 +41,6 @@ export async function getSignedUrl(
   opts?: SignedUrlOptions,
   token?: string
 ): Promise<SignedUrlResponse> {
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const params = new URLSearchParams({ op });
   if (opts?.expiresInSeconds) {
     params.set('expiresInSeconds', String(opts.expiresInSeconds));
@@ -85,25 +49,11 @@ export async function getSignedUrl(
     params.set('contentType', opts.contentType);
   }
 
-  const response = await fetch(
-    `${API_BASE_URL}/media/assets/${encodeURIComponent(
-      mediaAssetId
-    )}/signed-url?${params.toString()}`,
-    {
-      method: 'GET',
-      headers,
-    }
+  const response = await apiFetch(
+    `/media/assets/${encodeURIComponent(mediaAssetId)}/signed-url?${params.toString()}`,
+    { token }
   );
-
-  const result = await handleResponse<{
-    url: string;
-    method: 'GET' | 'PUT';
-  }>(response);
-
-  return {
-    url: result.url,
-    method: result.method,
-  };
+  return response.json() as Promise<SignedUrlResponse>;
 }
 
 export async function uploadToSignedUrl(

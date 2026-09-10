@@ -1,8 +1,6 @@
-import { ApiError } from './signupApi';
+import { apiFetch, ApiError } from '../utils/apiClient';
 import type { NotificationItem } from '../components/common/NotificationList';
 import type { PaginationMeta } from './dashboardApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 interface ApiNotification {
   id: string;
@@ -11,24 +9,6 @@ interface ApiNotification {
   createdAt: string;
   type?: 'info' | 'warning' | 'success' | 'error';
   read?: boolean;
-}
-
-interface GetNotificationsResponse {
-  data: ApiNotification[];
-  meta: PaginationMeta;
-}
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
 }
 
 function transformNotification(apiNotification: ApiNotification): NotificationItem {
@@ -47,24 +27,12 @@ export async function getNotifications(
   page = 1,
   limit = 20
 ): Promise<{ data: NotificationItem[]; meta: PaginationMeta }> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
-
-  const response = await fetch(`${API_BASE_URL}/notifications?${params}`, {
-    method: 'GET',
-    headers,
-  });
-
-  const result = await handleResponse<GetNotificationsResponse>(response);
+  const response = await apiFetch(`/notifications?${params}`, { token });
+  const result = await response.json() as { data: ApiNotification[]; meta: PaginationMeta };
   return {
     data: result.data.map(transformNotification),
     meta: result.meta,
@@ -72,18 +40,10 @@ export async function getNotifications(
 }
 
 export async function markNotificationRead(id: string, token?: string): Promise<NotificationItem> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/notifications/${id}/read`, {
+  const response = await apiFetch(`/notifications/${encodeURIComponent(id)}/read`, {
     method: 'PATCH',
-    headers,
+    token,
   });
-
-  const result = await handleResponse<ApiNotification>(response);
+  const result = await response.json() as ApiNotification;
   return transformNotification(result);
 }

@@ -1,7 +1,5 @@
-import { ApiError } from './signupApi';
+import { apiFetch, ApiError } from '../utils/apiClient';
 import type { PaginationMeta } from './dashboardApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
 
 export interface MessagePreview {
   id: string;
@@ -65,24 +63,6 @@ interface ApiMessageThread {
   updatedAt: string;
 }
 
-interface GetMessagesResponse {
-  data: ApiMessagePreview[];
-  meta: PaginationMeta;
-}
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
-}
-
 function transformMessagePreview(api: ApiMessagePreview): MessagePreview {
   return {
     id: api.id,
@@ -119,24 +99,12 @@ export async function getMessages(
   page = 1,
   limit = 20
 ): Promise<{ data: MessagePreview[]; meta: PaginationMeta }> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const params = new URLSearchParams({
     page: String(page),
     limit: String(limit),
   });
-
-  const response = await fetch(`${API_BASE_URL}/messages?${params}`, {
-    method: 'GET',
-    headers,
-  });
-
-  const result = await handleResponse<GetMessagesResponse>(response);
+  const response = await apiFetch(`/messages?${params}`, { token });
+  const result = await response.json() as { data: ApiMessagePreview[]; meta: PaginationMeta };
   return {
     data: result.data.map(transformMessagePreview),
     meta: result.meta,
@@ -144,19 +112,8 @@ export async function getMessages(
 }
 
 export async function getThread(id: string, token?: string): Promise<MessageThread> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/messages/${id}`, {
-    method: 'GET',
-    headers,
-  });
-
-  const result = await handleResponse<ApiMessageThread>(response);
+  const response = await apiFetch(`/messages/${encodeURIComponent(id)}`, { token });
+  const result = await response.json() as ApiMessageThread;
   return transformThread(result);
 }
 
@@ -165,19 +122,11 @@ export async function sendMessage(
   payload: SendMessagePayload,
   token?: string
 ): Promise<MessageThread> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/messages/${threadId}/reply`, {
+  const response = await apiFetch(`/messages/${encodeURIComponent(threadId)}/reply`, {
     method: 'POST',
-    headers,
+    token,
     body: JSON.stringify(payload),
   });
-
-  const result = await handleResponse<ApiMessageThread>(response);
+  const result = await response.json() as ApiMessageThread;
   return transformThread(result);
 }

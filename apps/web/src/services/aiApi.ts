@@ -1,6 +1,4 @@
-import { ApiError } from './signupApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+import { apiFetch, ApiError } from '../utils/apiClient';
 
 export interface AssistRequest {
   prompt: string;
@@ -13,41 +11,21 @@ export interface AssistResponse {
   createdAt: string;
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
-}
-
 export async function assist(
   prompt: string,
   context?: string,
   token?: string
 ): Promise<AssistResponse> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const payload: AssistRequest = { prompt };
   if (context) {
     payload.context = context;
   }
 
-  const response = await fetch(`${API_BASE_URL}/ai/assist`, {
+  const response = await apiFetch('/ai/assist', {
     method: 'POST',
-    headers,
+    token,
     body: JSON.stringify(payload),
   });
 
-  return handleResponse<AssistResponse>(response);
+  return response.json() as Promise<AssistResponse>;
 }
