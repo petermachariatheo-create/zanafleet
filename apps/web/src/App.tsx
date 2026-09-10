@@ -11,7 +11,7 @@ import { SignIn } from './components/SignIn';
 import { SignupWizard } from './components/SignupWizard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { BusinessDashboard } from './pages/BusinessDashboard';
-import { EventDashboard } from './pages/EventDashboard';
+import EventDashboard from './pages/EventDashboard';
 import { HistoryCalendarPage } from './pages/HistoryCalendar';
 import { MessagingPage } from './pages/Messaging';
 import { AIAssistantPage } from './pages/AIAssistant';
@@ -25,7 +25,7 @@ import { ShopPage } from './pages/Shop';
 import { ShopperDashboard } from './pages/ShopperDashboard';
 import { SupportDashboard } from './pages/SupportDashboard';
 import { SearchResultsPage } from './pages/Search/SearchResults';
-import { MoversHomePage } from './pages/MoversHomePage';
+import { LandingPage } from './pages/LandingPage';
 import FleetDashboard from './pages/AssetPlatform/FleetDashboard';
 import OperatorProfile from './pages/AssetPlatform/OperatorProfile';
 import AssetMarketplace from './pages/AssetPlatform/AssetMarketplace';
@@ -41,7 +41,7 @@ function App(): React.ReactElement {
         <SignupWizardProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<MoversHomePage />} />
+              <Route path="/" element={<LandingPage />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignupWizard />} />
               <Route

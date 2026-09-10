@@ -3,11 +3,16 @@
  * Mirrors backend: src/modules/actor/dto/actor.enums.ts
  */
 export enum ActorType {
-  Internal = 'Internal',
-  Business = 'Business',
-  SaccoAdmin = 'SaccoAdmin',
-  BusinessOwner = 'BusinessOwner',
   Rider = 'Rider',
+  Driver = 'Driver',
+  Admin = 'Admin',
+  Support = 'Support',
+  HUMAN = 'HUMAN',
+  SaccoAdmin = 'SaccoAdmin',
+  Business = 'Business',
+  BusinessOwner = 'BusinessOwner',
+  Customer = 'Customer',
+  Internal = 'Internal',
   AIService = 'AIService',
 }
 

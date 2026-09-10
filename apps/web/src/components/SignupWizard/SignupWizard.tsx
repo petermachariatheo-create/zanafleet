@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -10,6 +10,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { useSearchParams } from 'react-router-dom';
 
 import { useSignupWizard } from '../../hooks/useSignupWizard';
 import { WIZARD_STEPS, WizardStepName } from '../../contexts/SignupWizardContext';
@@ -30,15 +31,33 @@ export function SignupWizard({ onComplete }: SignupWizardProps): React.ReactElem
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isFinalized, setIsFinalized] = useState(false);
+  const [searchParams] = useSearchParams();
 
   const {
     currentStep,
     formData,
+    sessionId,
     isLoading,
     error,
     nextStep,
     prevStep,
+    updateField,
+    initSession,
   } = useSignupWizard();
+
+  useEffect(() => {
+    const actorTypeParam = searchParams.get('actorType');
+    if (actorTypeParam && Object.values(ActorType).includes(actorTypeParam as ActorType)) {
+      const actorType = actorTypeParam as ActorType;
+      updateField('actorType', actorType);
+      if (!sessionId) {
+        void initSession(actorType);
+      }
+      if (currentStep === 0) {
+        nextStep();
+      }
+    }
+  }, [searchParams, updateField, initSession, nextStep, currentStep, sessionId]);
 
   const canProceed = useMemo((): boolean => {
     const stepName = WIZARD_STEPS[currentStep];
