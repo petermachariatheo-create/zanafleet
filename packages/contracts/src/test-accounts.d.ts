@@ -4,24 +4,17 @@
  *
  * WARNING: These accounts should NEVER be used in production.
  */
-type TestActorType =
-  | 'Rider'
-  | 'Driver'
-  | 'Admin'
-  | 'Support'
-  | 'SaccoAdmin'
-  | 'BusinessOwner'
-  | 'Customer';
+type TestActorType = 'Rider' | 'Driver' | 'Admin' | 'Support' | 'SaccoAdmin' | 'BusinessOwner' | 'Customer';
 export interface TestAccount {
-  readonly id: string;
-  readonly email: string;
-  readonly username: string;
-  readonly type: TestActorType;
-  readonly roles: readonly string[];
-  readonly workspaceId: string | null;
+    readonly id: string;
+    readonly email: string;
+    readonly username: string;
+    readonly type: TestActorType;
+    readonly roles: readonly string[];
+    readonly workspaceId: string | null;
 }
-export declare const TEST_PASSWORD: 'testpassword123';
-export declare const TEST_WORKSPACE_ID: '550e8400-e29b-41d4-a716-446655440000';
+export declare const TEST_PASSWORD: "testpassword123";
+export declare const TEST_WORKSPACE_ID: "550e8400-e29b-41d4-a716-446655440000";
 export declare const TEST_ACCOUNTS: readonly TestAccount[];
-
+export {};
 //# sourceMappingURL=test-accounts.d.ts.map
