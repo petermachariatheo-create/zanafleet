@@ -13,6 +13,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { ThrottlerGuard, Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { ZodError } from 'zod';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 import { LoginCommand } from '../commands/login.command';
 import { LoginDto, LoginResponseDto } from '../dto/login.dto';
@@ -22,7 +24,11 @@ import { LoginResult } from '../handlers/login.handler';
 @Controller('auth')
 @UseGuards(ThrottlerGuard)
 export class AuthController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
+  ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -54,6 +60,50 @@ export class AuthController {
       }
       throw error;
     }
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ auth: { limit: 20, ttl: 60000 } }) // 20 requests per minute for refresh
+  async refresh(@Body() body: { token: string }) {
+    const { token } = body;
+
+    if (!token || typeof token !== 'string') {
+      throw new BadRequestException('Token is required');
+    }
+
+    const secret = this.configService.get<string>('auth.jwt.secret') || 'INSECURE_DEV_SECRET_CHANGE_IN_PRODUCTION';
+
+    const payload = await this.jwtService.verifyAsync<{
+      sub: string;
+      email: string;
+      workspaceId: string;
+      roles: string[];
+    }>(token, { secret });
+
+    const newToken = this.jwtService.sign(payload);
+
+    const expiresIn = this.configService.get<string>('auth.jwt.expiresIn') || '1h';
+    const expiresAt = new Date(Date.now() + this.parseExpirationTime(expiresIn));
+
+    return {
+      token: newToken,
+      expiresAt,
+    };
+  }
+
+  private parseExpirationTime(expiresIn: string): number {
+    const match = expiresIn.match(/^(\d+)([smhd])$/);
+    if (!match) return 3600 * 1000;
+    const value = parseInt(match[1], 10);
+    const unit = match[2];
+    const multipliers: Record<string, number> = {
+      s: 1000,
+      m: 60 * 1000,
+      h: 3600 * 1000,
+      d: 86400 * 1000,
+    };
+    return value * (multipliers[unit] || 3600 * 1000);
   }
 
   private createValidationException(error: ZodError): BadRequestException {
