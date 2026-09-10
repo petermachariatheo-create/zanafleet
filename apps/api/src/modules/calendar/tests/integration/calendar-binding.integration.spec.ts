@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BindingTargetType, CalendarScope } from '@zanafleet/contracts';
 import { v4 as uuidv4 } from 'uuid';
 
+import { EventBusModule } from '@api/core/event-bus';
 import { CalendarModule } from '../../calendar.module';
 import { CalendarEntity } from '../../entities/calendar.entity';
 import { CalendarRepository } from '../../repositories/calendar.repository';
@@ -40,6 +41,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
           autoLoadEntities: true,
           synchronize: true,
         }),
+        EventBusModule.forRoot({ isGlobal: true }),
         CalendarModule,
       ],
     }).compile();
@@ -327,7 +329,6 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         cutoffRiderId,
         {
           workspaceId,
-          saccoId,
           businessId: cutoffBusinessId,
           riderId: cutoffRiderId,
         }

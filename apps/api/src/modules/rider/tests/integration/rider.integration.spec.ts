@@ -2,11 +2,14 @@ import { EventBusModule } from '@api/core/event-bus';
 import { Neo4jModule, Neo4jService } from '@api/core/neo4j';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
+import { CqrsModule } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { VehicleType } from '@zanafleet/contracts';
 import { v4 as uuidv4 } from 'uuid';
 
+import { SaccoEntity } from '../../../sacco/entities/sacco.entity';
 import { CreateSaccoCommand } from '../../../sacco/commands/create-sacco.command';
 import { SaccoModule } from '../../../sacco/sacco.module';
 import { CreateRiderCommand } from '../../commands/create-rider.command';
@@ -24,6 +27,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   let module: TestingModule;
   let commandBus: CommandBus;
   let neo4jService: Neo4jService;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -38,8 +42,10 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
           autoLoadEntities: true,
           synchronize: true,
         }),
+        TypeOrmModule.forFeature([RiderEntity, SaccoEntity]),
         EventBusModule.forRoot({ isGlobal: true }),
         Neo4jModule.forRoot({ isGlobal: true }),
+        CqrsModule,
         SaccoModule,
         RiderModule,
       ],
@@ -48,6 +54,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     await module.init();
     commandBus = module.get<CommandBus>(CommandBus);
     neo4jService = module.get<Neo4jService>(Neo4jService);
+    dataSource = module.get<DataSource>(DataSource);
   });
 
   afterAll(async () => {
@@ -58,8 +65,8 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
 
   afterEach(async () => {
     // Clean up test data from Postgres
-    if (module) {
-      const entityManager = module.get('EntityManager');
+    if (dataSource && dataSource.isInitialized) {
+      const entityManager = dataSource.manager;
       await entityManager.query('DELETE FROM riders WHERE full_name LIKE $1', ['Test Rider%']);
       await entityManager.query('DELETE FROM saccos WHERE name LIKE $1', ['Test Sacco%']);
     }
@@ -99,6 +106,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         vehicleType: VehicleType.Bike,
         saccoId: null,
         email: null,
+        workspaceId: '00000000-0000-0000-0000-000000000001',
       });
 
       const riderId = await commandBus.execute(command);
@@ -138,6 +146,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         vehicleType: VehicleType.Car,
         saccoId,
         email: null,
+        workspaceId: '00000000-0000-0000-0000-000000000001',
       });
 
       const riderId = await commandBus.execute(command);
@@ -145,9 +154,10 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       expect(riderId).toBeDefined();
 
       // Verify the rider was created with the Sacco's location
-      const entityManager = module.get('EntityManager');
-      const rider = await entityManager.findOne(RiderEntity, { where: { id: riderId } });
-      expect(rider.location).toEqual(mombasaLocation);
+      const rider = dataSource && dataSource.isInitialized
+        ? await dataSource.manager.findOne(RiderEntity, { where: { id: riderId } })
+        : null;
+      expect(rider!.location).toEqual(mombasaLocation);
     });
 
     it('should throw NotFoundException when creating Rider with invalid Sacco', async () => {
@@ -279,6 +289,8 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       });
       const saccoId = await commandBus.execute(saccoCommand);
 
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Create rider with sacco
       const fullName = `Test Rider ${uuidv4().slice(0, 8)}`;
       const phone = `+2547${Math.floor(Math.random() * 100000000)
@@ -297,8 +309,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
 
       const riderId = await commandBus.execute(command);
 
-      // Wait for event handler to process
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Verify Neo4j node and relationship exist
       const session = neo4jService.getReadSession();

@@ -17,17 +17,86 @@ import { H3Service } from '../../services/h3.service';
  * Run with: npm run test:integration
  * Ensure docker-compose.test.yml services are running.
  *
- * Tests are automatically skipped if TEST_DB_HOST is not configured.
+ * Tests are automatically skipped if PostgreSQL is not reachable.
  */
 
-const isDbAvailable = Boolean(process.env.TEST_DB_HOST || process.env.CI);
-const describeWithDb = isDbAvailable ? describe : describe.skip;
+let dbAvailable = false;
 
-describeWithDb('RiderLocationRepository Integration', () => {
+beforeAll(async () => {
+  try {
+    const dataSource = new DataSource({
+      type: 'postgres',
+      host: process.env.TEST_DB_HOST || 'localhost',
+      port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
+      username: process.env.TEST_DB_USER || 'postgres',
+      password: process.env.TEST_DB_PASSWORD || 'postgres',
+      database: process.env.TEST_DB_NAME || 'zanafleet_test',
+    });
+    await dataSource.initialize();
+    await dataSource.query('SELECT 1');
+    await dataSource.destroy();
+    dbAvailable = true;
+  } catch (error) {
+    console.warn(
+      'Skipping RiderLocationRepository integration tests: PostgreSQL is not available. ' +
+        (error instanceof Error ? error.message : String(error))
+    );
+    dbAvailable = false;
+  }
+}, 10000);
+
+describe('RiderLocationRepository Integration', () => {
   let module: TestingModule;
   let repository: RiderLocationRepository;
   let dataSource: DataSource;
   let h3Service: H3Service;
+
+  beforeAll(async () => {
+    if (!dbAvailable) {
+      return;
+    }
+    module = await Test.createTestingModule({
+      imports: [
+        TypeOrmModule.forRoot({
+          type: 'postgres',
+          host: process.env.TEST_DB_HOST || 'localhost',
+          port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
+          username: process.env.TEST_DB_USER || 'postgres',
+          password: process.env.TEST_DB_PASSWORD || 'postgres',
+          database: process.env.TEST_DB_NAME || 'zanafleet_test',
+          entities: [RiderLocationSnapshotEntity, RiderLocationHistoryEntity],
+          synchronize: false,
+        }),
+        TypeOrmModule.forFeature([RiderLocationSnapshotEntity, RiderLocationHistoryEntity]),
+      ],
+      providers: [RiderLocationRepository, H3Service],
+    }).compile();
+
+    repository = module.get<RiderLocationRepository>(RiderLocationRepository);
+    dataSource = module.get<DataSource>(DataSource);
+    h3Service = module.get<H3Service>(H3Service);
+
+    await ensurePostGISEnabled();
+    await ensureTablesExist();
+  });
+
+  afterAll(async () => {
+    if (module) {
+      await cleanupTestData();
+      await module.close();
+    }
+  });
+
+  beforeEach(function () {
+    if (!dbAvailable) {
+      this.skip();
+    }
+  });
+
+  beforeEach(async () => {
+    await cleanupTestData();
+    await insertTestRiders();
+  });
 
   /**
    * Test center point: Nairobi, Kenya
@@ -88,42 +157,6 @@ describeWithDb('RiderLocationRepository Integration', () => {
       expectedDistanceApprox: 5000,
     },
   ];
-
-  beforeAll(async () => {
-    module = await Test.createTestingModule({
-      imports: [
-        TypeOrmModule.forRoot({
-          type: 'postgres',
-          host: process.env.TEST_DB_HOST || 'localhost',
-          port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
-          username: process.env.TEST_DB_USER || 'postgres',
-          password: process.env.TEST_DB_PASSWORD || 'postgres',
-          database: process.env.TEST_DB_NAME || 'zanafleet_test',
-          entities: [RiderLocationSnapshotEntity, RiderLocationHistoryEntity],
-          synchronize: false,
-        }),
-        TypeOrmModule.forFeature([RiderLocationSnapshotEntity, RiderLocationHistoryEntity]),
-      ],
-      providers: [RiderLocationRepository, H3Service],
-    }).compile();
-
-    repository = module.get<RiderLocationRepository>(RiderLocationRepository);
-    dataSource = module.get<DataSource>(DataSource);
-    h3Service = module.get<H3Service>(H3Service);
-
-    await ensurePostGISEnabled();
-    await ensureTablesExist();
-  });
-
-  afterAll(async () => {
-    await cleanupTestData();
-    await module.close();
-  });
-
-  beforeEach(async () => {
-    await cleanupTestData();
-    await insertTestRiders();
-  });
 
   async function ensurePostGISEnabled(): Promise<void> {
     await dataSource.query('CREATE EXTENSION IF NOT EXISTS postgis');

@@ -1,5 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
-import { CqrsModule, EventBus } from '@nestjs/cqrs';
+import { CommandBus, CqrsModule, EventBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -32,6 +32,7 @@ describeIntegration('WorkspaceController (Integration)', () => {
   let organizationRepository: Repository<OrganizationEntity>;
   let eventBus: EventBus;
   let dataSource: DataSource;
+  let commandBus: CommandBus;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -72,6 +73,8 @@ describeIntegration('WorkspaceController (Integration)', () => {
     );
     eventBus = module.get<EventBus>(EventBus);
     dataSource = module.get<DataSource>(DataSource);
+    commandBus = module.get<CommandBus>(CommandBus);
+    commandBus.register([CreateWorkspaceCommandHandler, UpdateWorkspaceCommandHandler]);
   });
 
   afterAll(async () => {
@@ -85,8 +88,8 @@ describeIntegration('WorkspaceController (Integration)', () => {
 
   beforeEach(async () => {
     // Clear tables in correct order to respect foreign keys (none yet, but good practice)
-    await workspaceRepository.delete({});
-    await organizationRepository.delete({});
+    await workspaceRepository.query('DELETE FROM workspaces');
+    await organizationRepository.query('DELETE FROM organizations');
     jest.clearAllMocks();
   });
 

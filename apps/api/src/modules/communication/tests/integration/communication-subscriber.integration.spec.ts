@@ -2,7 +2,8 @@ import { EventBusModule, IdempotencyService } from '@api/core/event-bus';
 import { Neo4jModule, Neo4jService } from '@api/core/neo4j';
 import { CommandBus } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 import { ActorType } from '../../../actor/dto/actor.enums';
@@ -18,6 +19,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     let commandBus: CommandBus;
     let neo4jService: Neo4jService;
     let idempotencyService: IdempotencyService;
+    let dataSource: DataSource;
 
     beforeAll(async () => {
       module = await Test.createTestingModule({
@@ -32,6 +34,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
             autoLoadEntities: true,
             synchronize: true,
           }),
+          TypeOrmModule.forFeature([]),
           EventBusModule.forRoot({ isGlobal: true }),
           Neo4jModule.forRoot({ isGlobal: true }),
           CommunicationModule,
@@ -42,6 +45,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       commandBus = module.get<CommandBus>(CommandBus);
       neo4jService = module.get<Neo4jService>(Neo4jService);
       idempotencyService = module.get<IdempotencyService>(IdempotencyService);
+      dataSource = module.get<DataSource>(DataSource);
     });
 
     afterAll(async () => {
@@ -52,8 +56,8 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
 
     afterEach(async () => {
       // Clean up test data
-      if (module) {
-        const entityManager = module.get('EntityManager');
+      if (dataSource && dataSource.isInitialized) {
+        const entityManager = dataSource.manager;
         await entityManager.query('DELETE FROM notifications WHERE "workspaceId" IS NOT NULL');
       }
 

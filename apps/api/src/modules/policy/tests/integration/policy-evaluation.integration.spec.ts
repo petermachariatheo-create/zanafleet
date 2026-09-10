@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
 
 import { EventBusService } from '../../../../core/event-bus/event-bus.service';
 import {
@@ -39,8 +40,8 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
     }> = {}
   ): Promise<PolicyEntity> => {
     const entity = PolicyEntity.fromDomain({
-      policyId: overrides.policyId ?? `policy-${Date.now()}-${Math.random()}`,
-      name: overrides.name ?? `Test Policy ${Date.now()}`,
+      policyId: overrides.policyId ?? uuidv4(),
+      name: overrides.name ?? `Test Policy ${uuidv4().slice(0, 8)}`,
       scope: overrides.scope ?? PolicyScope.GLOBAL,
       scopeTargetId: null,
       trigger: overrides.trigger ?? PolicyTrigger.DELIVERY_CREATION,
@@ -60,7 +61,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
   const createContext = (overrides: Partial<EvaluationContext> = {}): EvaluationContext => ({
     trigger: PolicyTrigger.DELIVERY_CREATION,
-    workspaceId: 'workspace-integration-test',
+    workspaceId: '00000000-0000-0000-0000-000000000001',
     timestamp: new Date(),
     ...overrides,
   });
@@ -85,10 +86,9 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
             username: process.env.POSTGRES_USER ?? 'postgres',
             password: process.env.POSTGRES_PASSWORD ?? 'postgres',
             database: process.env.POSTGRES_DB ?? 'zanafleet_test',
-            entities: [PolicyEntity, PolicyDecisionLogEntity],
-            synchronize: true,
-            dropSchema: true,
-            connectTimeoutMS: 5000,
+        entities: [PolicyEntity, PolicyDecisionLogEntity],
+        synchronize: true,
+        connectTimeoutMS: 5000,
           }),
           TypeOrmModule.forFeature([PolicyEntity, PolicyDecisionLogEntity]),
         ],
@@ -132,9 +132,17 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
     if (!isDatabaseAvailable) {
       return;
     }
-    await decisionLogRepo.delete({});
-    await policyRepo.delete({});
+    await decisionLogRepo.query('DELETE FROM policy_decision_logs');
+    await policyRepo.query('DELETE FROM policies');
     jest.clearAllMocks();
+  });
+
+  afterEach(async () => {
+    if (!isDatabaseAvailable) {
+      return;
+    }
+    await decisionLogRepo.query('DELETE FROM policy_decision_logs');
+    await policyRepo.query('DELETE FROM policies');
   });
 
   describe('full evaluation flow', () => {
@@ -148,7 +156,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
         priority: 100,
       });
 
-      const context = createContext({ deliveryId: 'delivery-integration-001' });
+      const context = createContext({ deliveryId: uuidv4() });
 
       const result = await service.evaluate(context);
 
@@ -157,20 +165,20 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       expect(result.evaluatedPolicies).toHaveLength(1);
       expect(result.evaluationFailed).toBe(false);
 
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const logs = await decisionLogRepo.find();
       expect(logs).toHaveLength(1);
       expect(logs[0].finalEffect).toBe(PolicyEffect.ALLOW);
       expect(logs[0].subjectType).toBe('Delivery');
-      expect(logs[0].subjectId).toBe('delivery-integration-001');
+      expect(logs[0].subjectId).toBe(context.deliveryId);
 
       expect(eventBus.publishEvent).toHaveBeenCalledTimes(1);
       expect(eventBus.publishEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           eventType: 'PolicyEvaluatedEvent-V1',
           finalEffect: PolicyEffect.ALLOW,
-          subjectId: 'delivery-integration-001',
+          subjectId: context.deliveryId,
         })
       );
     });
@@ -228,7 +236,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
         return;
       }
       const futurePolicy = PolicyEntity.fromDomain({
-        policyId: 'future-policy',
+        policyId: uuidv4(),
         name: 'Future Policy',
         scope: PolicyScope.GLOBAL,
         trigger: PolicyTrigger.DELIVERY_CREATION,
@@ -241,7 +249,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       await policyRepo.save(futurePolicy);
 
       const activePolicy = PolicyEntity.fromDomain({
-        policyId: 'active-policy',
+        policyId: uuidv4(),
         name: 'Active Policy',
         scope: PolicyScope.GLOBAL,
         trigger: PolicyTrigger.DELIVERY_CREATION,
@@ -269,19 +277,20 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       await createTestPolicy({ name: 'Policy A', priority: 10, effect: PolicyEffect.ALLOW });
       await createTestPolicy({ name: 'Policy B', priority: 20, effect: PolicyEffect.BLOCK });
 
+      const requestId = uuidv4();
       const context = createContext({
-        actorId: 'actor-audit-test',
-        deliveryId: 'delivery-audit-test',
+        actorId: uuidv4(),
+        deliveryId: uuidv4(),
       });
 
-      await service.evaluate(context);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await service.evaluate(context, { requestId });
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const logs = await decisionLogRepo.find();
+      const logs = await decisionLogRepo.find({ where: { requestId } });
       expect(logs).toHaveLength(1);
 
       const log = logs[0];
-      expect(log.actorId).toBe('actor-audit-test');
+      expect(log.actorId).toBe(context.actorId);
       expect(log.evaluatedPolicies).toHaveLength(2);
       expect(log.contextSnapshot.trigger).toBe(PolicyTrigger.DELIVERY_CREATION);
       expect(log.processingTimeMs).toBeGreaterThanOrEqual(0);
@@ -292,7 +301,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
         return;
       }
       const corruptPolicy = PolicyEntity.fromDomain({
-        policyId: 'corrupt-policy',
+        policyId: uuidv4(),
         name: 'Corrupt Policy',
         scope: PolicyScope.GLOBAL,
         trigger: PolicyTrigger.DELIVERY_CREATION,
@@ -304,7 +313,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       await policyRepo.save(corruptPolicy);
 
       await service.evaluate(createContext());
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       const logs = await decisionLogRepo.find();
       expect(logs).toHaveLength(1);
@@ -395,7 +404,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
         conditions: { field: 'trigger', operator: '==', value: 'DELIVERY_CREATION' },
       });
 
-      const context = createContext({ deliveryId: 'delivery-concurrent-001' });
+      const context = createContext({ deliveryId: uuidv4() });
 
       const evaluationPromises = Array.from({ length: 10 }, () => service.evaluate(context));
 
@@ -436,14 +445,14 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
       const deliveryContexts = Array.from({ length: 5 }, (_, i) =>
         createContext({
-          deliveryId: `delivery-concurrent-${i}`,
+          deliveryId: uuidv4(),
           trigger: PolicyTrigger.DELIVERY_CREATION,
         })
       );
 
       const riderContexts = Array.from({ length: 5 }, (_, i) =>
         createContext({
-          riderId: `rider-concurrent-${i}`,
+          riderId: uuidv4(),
           trigger: PolicyTrigger.RIDER_ASSIGNMENT,
         })
       );
@@ -477,15 +486,21 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
         priority: 50,
       });
 
+      const requestIds = Array.from({ length: 5 }, () => uuidv4());
       const contexts = Array.from({ length: 5 }, (_, i) =>
-        createContext({ deliveryId: `delivery-log-concurrent-${i}` })
+        createContext({ deliveryId: uuidv4() })
       );
 
-      await Promise.all(contexts.map((ctx) => service.evaluate(ctx)));
+      await Promise.all(
+        contexts.map((ctx, i) => service.evaluate(ctx, { requestId: requestIds[i] }))
+      );
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
-      const logs = await decisionLogRepo.find();
+      const logs = await decisionLogRepo
+        .createQueryBuilder('log')
+        .where('log.requestId IN (:...requestIds)', { requestIds })
+        .getMany();
       expect(logs.length).toBe(5);
 
       for (const log of logs) {
@@ -510,7 +525,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       }
 
       const evaluationPromises = Array.from({ length: 50 }, (_, i) =>
-        service.evaluate(createContext({ deliveryId: `delivery-high-concurrency-${i}` }))
+        service.evaluate(createContext({ deliveryId: uuidv4() }))
       );
 
       const results = await Promise.all(evaluationPromises);
@@ -540,7 +555,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
       for (let i = 0; i < 10; i++) {
         evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: `delivery-race-${i}` }))
+          service.evaluate(createContext({ deliveryId: uuidv4() }))
         );
 
         if (i === 5) {
@@ -575,7 +590,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
       for (let i = 0; i < 10; i++) {
         evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: `delivery-delete-${i}` }))
+          service.evaluate(createContext({ deliveryId: uuidv4() }))
         );
 
         if (i === 5) {
@@ -609,7 +624,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
       for (let i = 0; i < 10; i++) {
         evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: `delivery-add-${i}` }))
+          service.evaluate(createContext({ deliveryId: uuidv4() }))
         );
 
         if (i === 5) {
@@ -648,7 +663,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
       for (let i = 0; i < 20; i++) {
         evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: `delivery-rapid-${i}` }))
+          service.evaluate(createContext({ deliveryId: uuidv4() }))
         );
 
         updatePromises.push(
@@ -697,7 +712,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
 
       for (let i = 0; i < 15; i++) {
         evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: `delivery-scope-${i}` }))
+          service.evaluate(createContext({ deliveryId: uuidv4() }))
         );
 
         if (i === 5) {
@@ -722,7 +737,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
         expect([PolicyEffect.ALLOW, PolicyEffect.BLOCK]).toContain(result.finalDecision.effect);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       const logs = await decisionLogRepo.find();
       expect(logs.length).toBe(15);
     });

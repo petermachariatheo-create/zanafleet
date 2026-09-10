@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../../auth.module';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard';
 import { JwtStrategy, JwtPayload } from '../../strategies/jwt.strategy';
+import { ZanafleetThrottlerModule } from '@api/core/throttler';
 
 /**
  * Integration tests for Keycloak Authentication
@@ -43,6 +44,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         }),
         EventBusModule.forRoot({ isGlobal: true }),
         Neo4jModule.forRoot({ isGlobal: true }),
+        ZanafleetThrottlerModule,
         AuthModule,
       ],
     }).compile();
@@ -85,18 +87,19 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       }
     });
 
-    it('should deny access with missing token (401)', () => {
+    it('should deny access with missing token (401)', async () => {
       // Test the guard behavior with no token
       const mockContext = {
         switchToHttp: () => ({
           getRequest: () => ({
             headers: {},
           }),
+          getResponse: () => ({}),
         }),
       };
 
       // Without a token, the guard should deny access
-      expect(() => jwtAuthGuard.canActivate(mockContext as any)).toThrow(UnauthorizedException);
+      await expect(jwtAuthGuard.canActivate(mockContext as any)).rejects.toThrow(UnauthorizedException);
     });
 
     it('should deny access with invalid token (401)', async () => {

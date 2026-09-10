@@ -36,12 +36,11 @@ describeIntegration('CreateWorkspaceCommand Integration', () => {
             type: 'postgres',
             host: process.env.TEST_DB_HOST || 'localhost',
             port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
-            username: process.env.TEST_DB_USER || 'test',
-            password: process.env.TEST_DB_PASSWORD || 'test',
+            username: process.env.TEST_DB_USER || 'postgres',
+            password: process.env.TEST_DB_PASSWORD || 'postgres',
             database: process.env.TEST_DB_NAME || 'zanafleet_test',
             entities: [WorkspaceEntity, OrganizationEntity],
             synchronize: true,
-            dropSchema: true,
           }),
           TypeOrmModule.forFeature([WorkspaceEntity, OrganizationEntity]),
         ],
@@ -111,8 +110,8 @@ describeIntegration('CreateWorkspaceCommand Integration', () => {
       return;
     }
 
-    await workspaceRepository.delete({});
-    await organizationRepository.delete({});
+    await workspaceRepository.query('DELETE FROM workspaces');
+    await organizationRepository.query('DELETE FROM organizations');
   });
 
   describe('organization validation', () => {

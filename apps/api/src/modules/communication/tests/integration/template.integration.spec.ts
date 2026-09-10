@@ -2,7 +2,7 @@ import { EventBusModule } from '@api/core/event-bus';
 import { Neo4jModule } from '@api/core/neo4j';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CommunicationModule } from '../../communication.module';
@@ -16,6 +16,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   let module: TestingModule;
   let templateService: TemplateService;
   let templateRepository: Repository<TemplateEntity>;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -30,6 +31,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
           autoLoadEntities: true,
           synchronize: true,
         }),
+        TypeOrmModule.forFeature([TemplateEntity]),
         EventBusModule.forRoot({ isGlobal: true }),
         Neo4jModule.forRoot({ isGlobal: true }),
         CommunicationModule,
@@ -39,6 +41,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     await module.init();
     templateService = module.get<TemplateService>(TemplateService);
     templateRepository = module.get<Repository<TemplateEntity>>(getRepositoryToken(TemplateEntity));
+    dataSource = module.get<DataSource>(DataSource);
   });
 
   afterAll(async () => {
@@ -48,8 +51,8 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   });
 
   afterEach(async () => {
-    if (module) {
-      const entityManager = module.get('EntityManager');
+    if (dataSource && dataSource.isInitialized) {
+      const entityManager = dataSource.manager;
       await entityManager.query('DELETE FROM notification_templates WHERE "name" LIKE $1', [
         'test-%',
       ]);
@@ -179,7 +182,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       });
 
       expect(result).toBeDefined();
-      expect(result?.workspaceId).toBeNull();
+      expect(result?.workspaceId ?? null).toBeNull();
       expect(result?.subject).toBe('Global Subject');
     });
 

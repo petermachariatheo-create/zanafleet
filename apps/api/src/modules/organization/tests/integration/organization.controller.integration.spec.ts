@@ -38,12 +38,11 @@ describeIntegration('OrganizationController (Integration)', () => {
             type: 'postgres',
             host: process.env.TEST_DB_HOST || 'localhost',
             port: parseInt(process.env.TEST_DB_PORT || '5432', 10),
-            username: process.env.TEST_DB_USER || 'test',
-            password: process.env.TEST_DB_PASSWORD || 'test',
+            username: process.env.TEST_DB_USER || 'postgres',
+            password: process.env.TEST_DB_PASSWORD || 'postgres',
             database: process.env.TEST_DB_NAME || 'zanafleet_test',
             entities: [OrganizationEntity, WorkspaceEntity, MembershipEntity, ActorEntity],
             synchronize: true,
-            dropSchema: true,
           }),
           TypeOrmModule.forFeature([
             OrganizationEntity,
@@ -106,10 +105,10 @@ describeIntegration('OrganizationController (Integration)', () => {
       return;
     }
 
-    await membershipRepository.delete({});
-    await workspaceRepository.delete({});
-    await actorRepository.delete({});
-    await organizationRepository.delete({});
+    await membershipRepository.query('DELETE FROM memberships');
+    await workspaceRepository.query('DELETE FROM workspaces');
+    await actorRepository.query('DELETE FROM actors');
+    await organizationRepository.query('DELETE FROM organizations');
   });
 
   afterAll(async () => {

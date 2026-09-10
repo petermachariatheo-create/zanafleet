@@ -1,14 +1,16 @@
 import { EventBusModule } from '@api/core/event-bus';
 import { Neo4jModule, Neo4jService } from '@api/core/neo4j';
 import { ConflictException } from '@nestjs/common';
-import { CommandBus } from '@nestjs/cqrs';
+import { CommandBus, CqrsModule } from '@nestjs/cqrs';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { BusinessType } from '@zanafleet/contracts';
 import { v4 as uuidv4 } from 'uuid';
 
 import { BusinessModule } from '../../business.module';
 import { CreateBusinessCommand } from '../../commands/create-business.command';
+import { BusinessEntity } from '../../entities/business.entity';
 
 /**
  * Integration tests require real Postgres and Neo4j databases.
@@ -21,6 +23,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   let module: TestingModule;
   let commandBus: CommandBus;
   let neo4jService: Neo4jService;
+  let dataSource: DataSource;
 
   beforeAll(async () => {
     module = await Test.createTestingModule({
@@ -35,8 +38,10 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
           autoLoadEntities: true,
           synchronize: true,
         }),
+        TypeOrmModule.forFeature([BusinessEntity]),
         EventBusModule.forRoot({ isGlobal: true }),
         Neo4jModule.forRoot({ isGlobal: true }),
+        CqrsModule,
         BusinessModule,
       ],
     }).compile();
@@ -44,6 +49,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
     await module.init();
     commandBus = module.get<CommandBus>(CommandBus);
     neo4jService = module.get<Neo4jService>(Neo4jService);
+    dataSource = module.get<DataSource>(DataSource);
   });
 
   afterAll(async () => {
@@ -54,8 +60,8 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
 
   afterEach(async () => {
     // Clean up test data from Postgres
-    if (module) {
-      const entityManager = module.get('EntityManager');
+    if (dataSource && dataSource.isInitialized) {
+      const entityManager = dataSource.manager;
       await entityManager.query('DELETE FROM businesses WHERE business_name LIKE $1', [
         'Test Business%',
       ]);
@@ -91,6 +97,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         },
         businessType: BusinessType.Retail,
         email: null,
+        workspaceId: '00000000-0000-0000-0000-000000000001',
       });
 
       const businessId = await commandBus.execute(command);
@@ -116,6 +123,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         },
         businessType: BusinessType.Retail,
         email: null,
+        workspaceId: '00000000-0000-0000-0000-000000000001',
       });
       const command2 = new CreateBusinessCommand({
         businessName: `Test Business ${uuidv4().slice(0, 8)}`,
@@ -129,6 +137,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         },
         businessType: BusinessType.Restaurant,
         email: null,
+        workspaceId: '00000000-0000-0000-0000-000000000001',
       });
 
       await commandBus.execute(command1);
@@ -153,12 +162,12 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
         },
         businessType: BusinessType.Logistics,
         email: 'test@business.com',
+        workspaceId: '00000000-0000-0000-0000-000000000001',
       });
 
       const businessId = await commandBus.execute(command);
 
-      // Wait for event handler to process
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Verify Neo4j node exists with separate location properties
       const session = neo4jService.getReadSession();
