@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from '../utils/apiClient';
+import { apiFetch } from '../utils/apiClient';
 import type { NotificationItem } from '../components/common/NotificationList';
 import type { PaginationMeta } from './dashboardApi';
 

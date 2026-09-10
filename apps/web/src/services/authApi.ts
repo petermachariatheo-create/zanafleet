@@ -1,6 +1,6 @@
 import { User, LoginRequest, LoginResponse } from '../types';
 
-import { apiFetch, ApiError } from '../utils/apiClient';
+import { apiFetch } from '../utils/apiClient';
 
 /**
  * Login with email and password

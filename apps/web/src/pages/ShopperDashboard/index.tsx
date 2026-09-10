@@ -102,7 +102,7 @@ const InsightsTab: React.FC<{ insights: any }> = ({ insights }) => (
 );
 
 export function ShopperDashboard(): React.ReactElement {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const [tab, setTab] = useState(0);
     const [orders, setOrders] = useState<any[]>([]);
     const [insights, setInsights] = useState<any>(null);
@@ -127,8 +127,8 @@ export function ShopperDashboard(): React.ReactElement {
             if (!user) return;
             try {
                 const [oRes, iRes] = await Promise.all([
-                    getShopperOrders(user.id, user.token),
-                    getShopperInsights(user.id, user.token)
+                    getShopperOrders(user.id, token ?? undefined),
+                    getShopperInsights(user.id, token ?? undefined)
                 ]);
                 setOrders(oRes || []);
                 setInsights(iRes);
@@ -137,7 +137,7 @@ export function ShopperDashboard(): React.ReactElement {
             }
         };
         loadData();
-    }, [user]);
+    }, [user, token]);
 
     return (
         <DashboardLayout title="Shopper Dashboard">

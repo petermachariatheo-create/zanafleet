@@ -65,7 +65,7 @@ interface Business {
 }
 
 export const ShopPage: React.FC = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [businesses, setBusinesses] = useState<Business[]>([]);
@@ -94,7 +94,7 @@ export const ShopPage: React.FC = () => {
         const fetchData = async () => {
             try {
                 const [businessesRes, ordersRes, availRes] = await Promise.all([
-                    getMyBusinesses(user?.token || ''),
+                    getMyBusinesses(token || ''),
                     getOrderHistory({ limit: 50 }),
                     getBusinessAvailability()
                 ]);
@@ -111,7 +111,7 @@ export const ShopPage: React.FC = () => {
                 console.error('Failed to fetch shop data', err);
             }
         };
-        if (user?.token) {
+        if (token) {
             fetchData();
         }
     }, [user]);

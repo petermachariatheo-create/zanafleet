@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from '../utils/apiClient';
+import { apiFetch } from '../utils/apiClient';
 
 function buildQueryString(params: Record<string, string | number | undefined>): string {
   const entries = Object.entries(params).filter(
@@ -294,7 +294,7 @@ export interface PaymentActivitySummary {
 
 export async function getAdminMetrics(token: string, periodDays?: number): Promise<SystemMetrics> {
   const qs = buildQueryString({ periodDays });
-  const response = await apiFetch('/dashboard/admin/metrics${qs}', {
+  const response = await apiFetch(`/dashboard/admin/metrics${qs}`, {
     method: 'GET',
     token,
   });
@@ -306,7 +306,7 @@ export async function getAdminSettlements(
   params?: PaginationParams
 ): Promise<PaginatedResponse<SettlementSummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/admin/settlements${qs}', {
+  const response = await apiFetch(`/dashboard/admin/settlements${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<SettlementSummary>>;
@@ -317,7 +317,7 @@ export async function getAdminPolicies(
   params?: PaginationParams
 ): Promise<PaginatedResponse<PolicySummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/admin/policies${qs}', {
+  const response = await apiFetch(`/dashboard/admin/policies${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<PolicySummary>>;
@@ -333,7 +333,7 @@ export async function getBusinessMetrics(
   periodDays?: number
 ): Promise<BusinessMetrics> {
   const qs = buildQueryString({ periodDays });
-  const response = await apiFetch('/dashboard/business/${businessId}/metrics${qs}', {
+  const response = await apiFetch(`/dashboard/business/${businessId}/metrics${qs}`, {
     method: 'GET',
     token,
   });
@@ -346,7 +346,7 @@ export async function getBusinessOrders(
   params?: PaginationParams
 ): Promise<PaginatedResponse<OrderSummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/business/${businessId}/orders${qs}', {
+  const response = await apiFetch(`/dashboard/business/${businessId}/orders${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<OrderSummary>>;
@@ -374,7 +374,7 @@ export async function getBusinessOverview(
   token: string,
   businessId: string
 ): Promise<BusinessOverview> {
-  const response = await apiFetch('/businesses/${businessId}/stats/overview', {
+  const response = await apiFetch(`/businesses/${businessId}/stats/overview`, {
     method: 'GET',
     token,
   });
@@ -398,7 +398,7 @@ export async function getBusinessDeliveries(
     activeOnly: params?.activeOnly ? 'true' : undefined,
     search: params?.search,
   });
-  const response = await apiFetch('/businesses/${businessId}/deliveries${qs}', {
+  const response = await apiFetch(`/businesses/${businessId}/deliveries${qs}`, {
     method: 'GET',
     token,
   });
@@ -411,7 +411,7 @@ export async function requestBusinessDelivery(
   businessId: string,
   request: BusinessDeliveryRequest
 ): Promise<DeliveryRequestResult> {
-  const response = await apiFetch('/businesses/${businessId}/deliveries/request', {
+  const response = await apiFetch(`/businesses/${businessId}/deliveries/request`, {
     method: 'POST',
     token,
     body: JSON.stringify(request),
@@ -424,7 +424,7 @@ export async function getBusinessDeliveryDetail(
   businessId: string,
   deliveryId: string
 ): Promise<DeliveryDetail> {
-  const response = await apiFetch('/businesses/${businessId}/deliveries/${deliveryId}', {
+  const response = await apiFetch(`/businesses/${businessId}/deliveries/${deliveryId}`, {
     method: 'GET',
     token,
   });
@@ -435,7 +435,7 @@ export async function getDeliveryTimeline(
   token: string,
   deliveryId: string
 ): Promise<DeliveryTimelineItem[]> {
-  const response = await apiFetch('/deliveries/${deliveryId}/timeline', {
+  const response = await apiFetch(`/deliveries/${deliveryId}/timeline`, {
     method: 'GET',
     token,
   });
@@ -447,7 +447,7 @@ export async function getBusinessBillingSummary(
   token: string,
   businessId: string
 ): Promise<BillingSummary> {
-  const response = await apiFetch('/businesses/${businessId}/billing/summary', {
+  const response = await apiFetch(`/businesses/${businessId}/billing/summary`, {
     method: 'GET',
     token,
   });
@@ -464,7 +464,7 @@ export async function getRiderActiveDeliveries(
   params?: PaginationParams
 ): Promise<PaginatedResponse<ActiveDeliverySummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/rider/${riderId}/deliveries/active${qs}', {
+  const response = await apiFetch(`/dashboard/rider/${riderId}/deliveries/active${qs}`, {
     method: 'GET',
     token,
   });
@@ -477,7 +477,7 @@ export async function getRiderDeliveryHistory(
   params?: PaginationParams
 ): Promise<PaginatedResponse<ActiveDeliverySummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/rider/${riderId}/deliveries/history${qs}', {
+  const response = await apiFetch(`/dashboard/rider/${riderId}/deliveries/history${qs}`, {
     method: 'GET',
     token,
   });
@@ -490,7 +490,7 @@ export async function getRiderEarnings(
   periodDays?: number
 ): Promise<EarningsSummary> {
   const qs = buildQueryString({ periodDays });
-  const response = await apiFetch('/dashboard/rider/${riderId}/earnings${qs}', {
+  const response = await apiFetch(`/dashboard/rider/${riderId}/earnings${qs}`, {
     method: 'GET',
     token,
   });
@@ -514,7 +514,7 @@ export async function getOperatorAssignmentQueue(
   params?: PaginationParams
 ): Promise<PaginatedResponse<AssignmentQueueItem>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/operator/assignment-queue${qs}', {
+  const response = await apiFetch(`/dashboard/operator/assignment-queue${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<AssignmentQueueItem>>;
@@ -537,7 +537,7 @@ export async function getOperatorCandidatesByArea(
     radius: params.radius,
     limit: params.limit,
   });
-  const response = await apiFetch('/dashboard/operator/candidates${qs}', {
+  const response = await apiFetch(`/dashboard/operator/candidates${qs}`, {
     method: 'GET',
     token,
   });
@@ -555,7 +555,7 @@ export async function getOperatorDeliveryCandidates(
   params?: DeliveryCandidatesParams
 ): Promise<CandidateInfo[]> {
   const qs = buildQueryString({ radius: params?.radius, limit: params?.limit });
-  const response = await apiFetch('/dashboard/operator/deliveries/${deliveryId}/candidates${qs}', {
+  const response = await apiFetch(`/dashboard/operator/deliveries/${deliveryId}/candidates${qs}`, {
     method: 'GET',
     token,
   });
@@ -579,7 +579,7 @@ export async function getOperatorRouteHint(
     destLat: params.destLat,
     destLng: params.destLng,
   });
-  const response = await apiFetch('/dashboard/operator/route-hint${qs}', {
+  const response = await apiFetch(`/dashboard/operator/route-hint${qs}`, {
     method: 'GET',
     token,
   });
@@ -595,7 +595,7 @@ export async function getSupportMetrics(
   periodDays?: number
 ): Promise<SupportMetrics> {
   const qs = buildQueryString({ periodDays });
-  const response = await apiFetch('/dashboard/support/metrics${qs}', {
+  const response = await apiFetch(`/dashboard/support/metrics${qs}`, {
     method: 'GET',
     token,
   });
@@ -607,7 +607,7 @@ export async function getSupportDisputes(
   params?: PaginationParams
 ): Promise<PaginatedResponse<DisputeSummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/support/disputes${qs}', {
+  const response = await apiFetch(`/dashboard/support/disputes${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<DisputeSummary>>;
@@ -618,7 +618,7 @@ export async function getSupportEscalatedDisputes(
   params?: PaginationParams
 ): Promise<PaginatedResponse<DisputeSummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/support/disputes/escalated${qs}', {
+  const response = await apiFetch(`/dashboard/support/disputes/escalated${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<DisputeSummary>>;
@@ -629,7 +629,7 @@ export async function getSupportRefunds(
   params?: PaginationParams
 ): Promise<PaginatedResponse<RefundSummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/support/refunds${qs}', {
+  const response = await apiFetch(`/dashboard/support/refunds${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<RefundSummary>>;
@@ -640,7 +640,7 @@ export async function getSupportRecentPayments(
   params?: PaginationParams
 ): Promise<PaginatedResponse<PaymentActivitySummary>> {
   const qs = buildQueryString({ page: params?.page, limit: params?.limit });
-  const response = await apiFetch('/dashboard/support/payments/recent${qs}', {
+  const response = await apiFetch(`/dashboard/support/payments/recent${qs}`, {
     token,
   });
   return response.json() as Promise<PaginatedResponse<PaymentActivitySummary>>;

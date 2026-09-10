@@ -41,3 +41,12 @@ if (enableMSW) {
 } else {
   renderApp();
 }
+
+if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+      // eslint-disable-next-line no-console
+      console.warn('Service worker registration failed:', err);
+    });
+  });
+}

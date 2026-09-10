@@ -10,6 +10,8 @@ import {
 
 import { apiFetch, ApiError } from '../utils/apiClient';
 
+export { ApiError };
+
 /**
  * Initiate a new sign-up session
  * POST /signup
