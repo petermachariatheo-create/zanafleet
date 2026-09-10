@@ -8,34 +8,7 @@ import {
   Workspace,
 } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
-
-/**
- * Structured error class for API failures
- */
-export class ApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly statusText: string,
-    public readonly body?: unknown
-  ) {
-    super(`API Error: ${status} ${statusText}`);
-    this.name = 'ApiError';
-  }
-}
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
-}
+import { apiFetch, ApiError } from '../utils/apiClient';
 
 /**
  * Initiate a new sign-up session
@@ -45,14 +18,11 @@ export async function initiateSignup(
   actorType: ActorType,
   idempotencyKey?: string
 ): Promise<InitiateSignupResponse> {
-  const response = await fetch(`${API_BASE_URL}/signup`, {
+  const response = await apiFetch('/signup', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify({ actorType, idempotencyKey }),
   });
-  return handleResponse<InitiateSignupResponse>(response);
+  return response.json() as Promise<InitiateSignupResponse>;
 }
 
 /**
@@ -63,14 +33,11 @@ export async function updateStep(
   sessionId: string,
   data: UpdateStepRequest
 ): Promise<UpdateStepResponse> {
-  const response = await fetch(`${API_BASE_URL}/signup/${sessionId}`, {
+  const response = await apiFetch(`/signup/${sessionId}`, {
     method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(data),
   });
-  return handleResponse<UpdateStepResponse>(response);
+  return response.json() as Promise<UpdateStepResponse>;
 }
 
 /**
@@ -78,13 +45,8 @@ export async function updateStep(
  * GET /signup/:id
  */
 export async function getSession(sessionId: string): Promise<SignupSession> {
-  const response = await fetch(`${API_BASE_URL}/signup/${sessionId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<SignupSession>(response);
+  const response = await apiFetch(`/signup/${sessionId}`);
+  return response.json() as Promise<SignupSession>;
 }
 
 /**
@@ -92,13 +54,10 @@ export async function getSession(sessionId: string): Promise<SignupSession> {
  * POST /signup/:id/finalize
  */
 export async function finalizeSignup(sessionId: string): Promise<FinalizeSignupResponse> {
-  const response = await fetch(`${API_BASE_URL}/signup/${sessionId}/finalize`, {
+  const response = await apiFetch(`/signup/${sessionId}/finalize`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
   });
-  return handleResponse<FinalizeSignupResponse>(response);
+  return response.json() as Promise<FinalizeSignupResponse>;
 }
 
 /**
@@ -106,16 +65,9 @@ export async function finalizeSignup(sessionId: string): Promise<FinalizeSignupR
  * GET /workspaces
  */
 export async function listWorkspaces(type?: string): Promise<Workspace[]> {
-  const url = type
-    ? `${API_BASE_URL}/workspaces?type=${encodeURIComponent(type)}`
-    : `${API_BASE_URL}/workspaces`;
-  const response = await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-  return handleResponse<Workspace[]>(response);
+  const path = type ? `/workspaces?type=${encodeURIComponent(type)}` : '/workspaces';
+  const response = await apiFetch(path);
+  return response.json() as Promise<Workspace[]>;
 }
 
 /**
@@ -124,15 +76,8 @@ export async function listWorkspaces(type?: string): Promise<Workspace[]> {
  * GET /workspaces/allowed-types?actorType=...
  */
 export async function getAllowedWorkspaceTypes(actorType: ActorType): Promise<string[]> {
-  const response = await fetch(
-    `${API_BASE_URL}/workspaces/allowed-types?actorType=${encodeURIComponent(actorType)}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }
-  );
-  const data = await handleResponse<{ allowedTypes: string[] }>(response);
+  const path = `/workspaces/allowed-types?actorType=${encodeURIComponent(actorType)}`;
+  const response = await apiFetch(path);
+  const data = await response.json() as { allowedTypes: string[] };
   return data.allowedTypes;
 }
