@@ -6,12 +6,7 @@ import React, {
   useReducer,
 } from 'react';
 
-import {
-  login as apiLogin,
-  logout as apiLogout,
-  getCurrentUser,
-} from '../services/authApi';
-import { ApiError } from '../services/signupApi';
+import { apiFetch, ApiError } from '../utils/apiClient';
 import {
   AuthState,
   LoginRequest,
@@ -109,7 +104,10 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
 
     dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const user = await getCurrentUser(storedToken);
+      const response = await apiFetch('/auth/me', {
+        token: storedToken,
+      });
+      const user = await response.json() as User;
       dispatch({ type: 'RESTORE_SESSION', payload: { user, token: storedToken } });
     } catch (err) {
       localStorage.removeItem(STORAGE_KEY);
@@ -130,9 +128,13 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      const response = await apiLogin(credentials);
-      persistToken(response.token);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: { user: response.user, token: response.token } });
+      const response = await apiFetch('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify(credentials),
+      });
+      const data = await response.json() as { user: User; token: string };
+      persistToken(data.token);
+      dispatch({ type: 'LOGIN_SUCCESS', payload: { user: data.user, token: data.token } });
     } catch (err) {
       const message = err instanceof ApiError
         ? `Login failed: ${err.statusText}`
@@ -148,7 +150,12 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'SET_ERROR', payload: null });
     try {
-      await apiLogout(state.token ?? undefined);
+      if (state.token) {
+        await apiFetch('/auth/logout', {
+          method: 'POST',
+          token: state.token,
+        });
+      }
     } catch (err) {
       console.error('Logout API call failed:', err);
     } finally {
