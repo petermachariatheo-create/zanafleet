@@ -45,15 +45,13 @@ export class PreferenceService {
     channel: NotificationChannel,
     workspaceId?: string
   ): Promise<boolean> {
-    const baseQuery = this.preferenceRepository
-      .createQueryBuilder('pref')
-      .where('pref.recipientId = :recipientId', { recipientId })
-      .andWhere('pref.recipientType = :recipientType', { recipientType })
-      .andWhere('pref.channel = :channel', { channel });
-
     // Try workspace-specific preference first
     if (workspaceId) {
-      const workspacePreference = await baseQuery
+      const workspacePreference = await this.preferenceRepository
+        .createQueryBuilder('pref')
+        .where('pref.recipientId = :recipientId', { recipientId })
+        .andWhere('pref.recipientType = :recipientType', { recipientType })
+        .andWhere('pref.channel = :channel', { channel })
         .andWhere('pref.workspaceId = :workspaceId', { workspaceId })
         .getOne();
 
@@ -66,7 +64,13 @@ export class PreferenceService {
     }
 
     // Fall back to global preference (workspaceId IS NULL)
-    const globalPreference = await baseQuery.andWhere('pref.workspaceId IS NULL').getOne();
+    const globalPreference = await this.preferenceRepository
+      .createQueryBuilder('pref')
+      .where('pref.recipientId = :recipientId', { recipientId })
+      .andWhere('pref.recipientType = :recipientType', { recipientType })
+      .andWhere('pref.channel = :channel', { channel })
+      .andWhere('pref.workspaceId IS NULL')
+      .getOne();
 
     if (globalPreference !== null && globalPreference !== undefined) {
       this.logger.debug(
