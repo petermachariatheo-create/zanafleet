@@ -28,16 +28,16 @@ export async function getBusinessAvailability(): Promise<any[]> {
   return body.data || [];
 }
 
-export async function getShopperOrders(customerId: string): Promise<any[]> {
+export async function getShopperOrders(customerId: string, token?: string): Promise<any[]> {
   const path = `/customers/me/orders?customerId=${encodeURIComponent(customerId)}`;
-  const response = await apiFetch(path);
+  const response = await apiFetch(path, { token });
   const body = await response.json() as { data: any[] };
   return body.data || [];
 }
 
-export async function getShopperInsights(customerId: string): Promise<any> {
+export async function getShopperInsights(customerId: string, token?: string): Promise<any> {
   const path = `/customers/me/insights?customerId=${encodeURIComponent(customerId)}`;
-  const response = await apiFetch(path);
+  const response = await apiFetch(path, { token });
   const body = await response.json() as { data: any };
   return body.data;
 }

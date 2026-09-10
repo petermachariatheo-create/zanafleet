@@ -127,8 +127,8 @@ export function ShopperDashboard(): React.ReactElement {
             if (!user) return;
             try {
                 const [oRes, iRes] = await Promise.all([
-                    getShopperOrders(user.id),
-                    getShopperInsights(user.id)
+                    getShopperOrders(user.id, user.token),
+                    getShopperInsights(user.id, user.token)
                 ]);
                 setOrders(oRes || []);
                 setInsights(iRes);
