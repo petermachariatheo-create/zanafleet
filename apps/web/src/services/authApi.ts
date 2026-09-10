@@ -1,35 +1,17 @@
 import { User, LoginRequest, LoginResponse } from '../types';
 
-import { ApiError } from './signupApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
-
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-  return response.json() as Promise<T>;
-}
+import { apiFetch, ApiError } from '../utils/apiClient';
 
 /**
  * Login with email and password
  * POST /api/auth/login
  */
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const response = await apiFetch('/auth/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
     body: JSON.stringify(credentials),
   });
-  return handleResponse<LoginResponse>(response);
+  return response.json() as Promise<LoginResponse>;
 }
 
 /**
@@ -37,24 +19,13 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
  * POST /api/auth/logout
  */
 export async function logout(token?: string): Promise<void> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-    method: 'POST',
-    headers,
-  });
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
+  try {
+    await apiFetch('/auth/logout', {
+      method: 'POST',
+      token,
+    });
+  } catch (err) {
+    console.error('Logout API call failed:', err);
   }
 }
 
@@ -63,17 +34,10 @@ export async function logout(token?: string): Promise<void> {
  * GET /api/auth/me
  */
 export async function getCurrentUser(token?: string): Promise<User> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
-    method: 'GET',
-    headers,
+  const response = await apiFetch('/auth/me', {
+    token,
   });
-  return handleResponse<User>(response);
+  return response.json() as Promise<User>;
 }
 
 /**
@@ -81,17 +45,10 @@ export async function getCurrentUser(token?: string): Promise<User> {
  * GET /api/user/profile
  */
 export async function getProfile(token?: string): Promise<User> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  const response = await fetch(`${API_BASE_URL}/user/profile`, {
-    method: 'GET',
-    headers,
+  const response = await apiFetch('/user/profile', {
+    token,
   });
-  return handleResponse<User>(response);
+  return response.json() as Promise<User>;
 }
 
 /**
@@ -99,16 +56,10 @@ export async function getProfile(token?: string): Promise<User> {
  * PUT /api/user/profile
  */
 export async function updateProfile(update: Partial<User>, token?: string): Promise<User> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  const response = await fetch(`${API_BASE_URL}/user/profile`, {
+  const response = await apiFetch('/user/profile', {
     method: 'PUT',
-    headers,
+    token,
     body: JSON.stringify(update),
   });
-  return handleResponse<User>(response);
+  return response.json() as Promise<User>;
 }
