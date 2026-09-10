@@ -5,6 +5,7 @@
  * - `ApiError`: normalized error class for non-2xx responses
  * - `getApiUrl`: builds absolute API URLs from env-configured base
  * - `apiFetch`: fetch wrapper that injects auth and workspace headers
+ * - `setTokenRefresher`: registers a callback to obtain a fresh token
  */
 
 export class ApiError extends Error {
@@ -23,6 +24,21 @@ export function getApiUrl(path: string): string {
   const normalizedBase = base.replace(/\/$/, '');
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${normalizedBase}${normalizedPath}`;
+}
+
+type TokenRefresher = () => Promise<string | null>;
+
+let tokenRefresher: TokenRefresher | null = null;
+
+export function setTokenRefresher(refresher: TokenRefresher | null): void {
+  tokenRefresher = refresher;
+}
+
+async function getFreshToken(): Promise<string | null> {
+  if (!tokenRefresher) {
+    return null;
+  }
+  return tokenRefresher();
 }
 
 export async function apiFetch(
@@ -45,7 +61,22 @@ export async function apiFetch(
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(url, { ...options, headers });
+  let response = await fetch(url, { ...options, headers });
+
+  if (response.status === 401) {
+    const freshToken = await getFreshToken();
+    if (freshToken) {
+      const retryHeaders = new Headers(options.headers);
+      retryHeaders.set('Authorization', `Bearer ${freshToken}`);
+      if (options.workspaceId) {
+        retryHeaders.set('X-Workspace-Id', options.workspaceId);
+      }
+      if (options.body && !retryHeaders.has('Content-Type')) {
+        retryHeaders.set('Content-Type', 'application/json');
+      }
+      response = await fetch(url, { ...options, headers: retryHeaders });
+    }
+  }
 
   if (!response.ok) {
     let body: unknown;

@@ -6,7 +6,7 @@ import React, {
   useReducer,
 } from 'react';
 
-import { apiFetch, ApiError } from '../utils/apiClient';
+import { apiFetch, ApiError, setTokenRefresher } from '../utils/apiClient';
 import {
   AuthState,
   LoginRequest,
@@ -123,6 +123,30 @@ export function AuthProvider({ children }: AuthProviderProps): React.ReactElemen
   useEffect(() => {
     void recoverSession();
   }, [recoverSession]);
+
+  useEffect(() => {
+    setTokenRefresher(async () => {
+      if (!state.token) {
+        return null;
+      }
+      try {
+        const response = await apiFetch('/auth/refresh', {
+          method: 'POST',
+          token: state.token,
+        });
+        const data = await response.json() as { token: string };
+        persistToken(data.token);
+        dispatch({ type: 'LOGIN_SUCCESS', payload: { user: state.user!, token: data.token } });
+        return data.token;
+      } catch {
+        return null;
+      }
+    });
+
+    return () => {
+      setTokenRefresher(null);
+    };
+  }, [state.token, state.user, persistToken]);
 
   const login = useCallback(async (credentials: LoginRequest): Promise<void> => {
     dispatch({ type: 'SET_LOADING', payload: true });
