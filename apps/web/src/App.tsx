@@ -20,7 +20,6 @@ import { SettingsPage } from './pages/Settings';
 import { MessagingPage } from './pages/Messaging';
 import { AIAssistantPage } from './pages/AIAssistant';
 import { HistoryCalendarPage } from './pages/HistoryCalendar';
-import { ComponentsDemo } from './pages/Demo/ComponentsDemo';
 import { RequestDeliveryPage } from './pages/RequestDelivery';
 import { ShopPage } from './pages/Shop';
 import { OrderTrackingPage } from './pages/OrderTracking';
@@ -45,7 +44,6 @@ function App(): React.ReactElement {
               <Route path="/" element={<MoversHomePage />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignupWizard />} />
-              <Route path="/demo/components" element={<ComponentsDemo />} />
               <Route
                 path="/profile"
                 element={
