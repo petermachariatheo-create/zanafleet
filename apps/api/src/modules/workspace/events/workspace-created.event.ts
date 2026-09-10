@@ -63,7 +63,7 @@ export class WorkspaceCreatedEventV1 {
     this.name = data.name;
     this.type = data.type;
     this.status = data.status;
-    this.roleTemplates = data.roleTemplates;
+    this.roleTemplates = Object.freeze(data.roleTemplates);
     this.createdAt = data.createdAt;
     this.occurredAt = data.occurredAt || new Date();
     this.aggregateId = data.workspaceId;
