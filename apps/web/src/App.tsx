@@ -95,7 +95,7 @@ function App(): React.ReactElement {
               <Route
                 path="/dashboard/admin/*"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={['Admin', 'SiteOwner']}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 }
@@ -103,7 +103,7 @@ function App(): React.ReactElement {
               <Route
                 path="/dashboard/support/*"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={['Support']}>
                     <SupportDashboard />
                   </ProtectedRoute>
                 }
@@ -111,7 +111,7 @@ function App(): React.ReactElement {
               <Route
                 path="/dashboard/operator/*"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={['SaccoAdmin', 'Operator']}>
                     <OperatorDashboard />
                   </ProtectedRoute>
                 }
@@ -119,7 +119,7 @@ function App(): React.ReactElement {
               <Route
                 path="/dashboard/business/*"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={['BusinessOwner', 'Business']}>
                     <BusinessDashboard />
                   </ProtectedRoute>
                 }
@@ -127,7 +127,7 @@ function App(): React.ReactElement {
               <Route
                 path="/dashboard/rider/*"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={['Rider', 'Driver']}>
                     <RiderDashboard />
                   </ProtectedRoute>
                 }
@@ -135,7 +135,7 @@ function App(): React.ReactElement {
               <Route
                 path="/dashboard/shopper/*"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={['Customer', 'Shopper']}>
                     <ShopperDashboard />
                   </ProtectedRoute>
                 }
