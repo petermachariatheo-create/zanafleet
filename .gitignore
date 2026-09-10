@@ -84,6 +84,9 @@ docker-compose.override.yml
 /.brokk/sessions/
 /.brokk/dependencies/
 /.brokk/history.zip
-!AGENTS.md
+
+# Local agent/tracking docs
+AGENTS.md
+MVD_TRACKING.md
 !.brokk/style.md
 !.brokk/project.properties
