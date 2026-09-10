@@ -1,6 +1,4 @@
-import { ApiError } from './signupApi';
-
-const API_BASE_URL = process.env.REACT_APP_API_URL || '/api';
+import { apiFetch, ApiError } from '../utils/apiClient';
 
 export interface SearchDocument {
   entityId: string;
@@ -48,23 +46,6 @@ function buildQueryString(params: Record<string, string | number | undefined>): 
  */
 export async function search(params: SearchParams, token?: string): Promise<SearchResults> {
   const qs = buildQueryString(params as any);
-  const response = await fetch(`${API_BASE_URL}/search${qs}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-  });
-
-  if (!response.ok) {
-    let body: unknown;
-    try {
-      body = await response.json();
-    } catch {
-      // Response body is not JSON
-    }
-    throw new ApiError(response.status, response.statusText, body);
-  }
-
-  return response.json();
+  const response = await apiFetch(`/search${qs}`, { token });
+  return response.json() as Promise<SearchResults>;
 }
