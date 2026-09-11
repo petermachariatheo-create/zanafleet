@@ -157,6 +157,16 @@ jobs:
           - 4222:4222
           - 8222:8222
 
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 6379:6379
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -212,6 +222,12 @@ jobs:
             sleep 2
           done
 
+          echo "Waiting for Redis..."
+          for i in {1..60}; do
+            nc -z 127.0.0.1 6379 && echo "✓ Redis ready" && break
+            sleep 2
+          done
+
       - name: Run E2E tests with Playwright
         run: npx playwright test
         env:
@@ -225,6 +241,8 @@ jobs:
           NEO4J_PORT: 7687
           NATS_HOST: 127.0.0.1
           NATS_PORT: 4222
+          REDIS_HOST: 127.0.0.1
+          REDIS_PORT: 6379
           API_URL: http://localhost:3000
           CI: 'true'
         continue-on-error: false
