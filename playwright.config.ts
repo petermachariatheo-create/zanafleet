@@ -128,7 +128,7 @@ export default defineConfig({
     {
       // Run the compiled API directly from dist/api/src
       command: 'node dist/api/src/main.js',
-      url: 'http://localhost:3000/health',
+      url: 'http://localhost:3000/api/health/live',
       reuseExistingServer: !process.env.CI,
       timeout: 300 * 1000,
       stdout: 'pipe',
