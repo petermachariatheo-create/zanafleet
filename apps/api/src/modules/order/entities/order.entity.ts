@@ -94,6 +94,7 @@ export class OrderEntity {
   static fromDomain(data: {
     orderId: string;
     businessId: string;
+    workspaceId: string;
     deliveryId?: string | null;
     itemSummary?: string | null;
     itemMetadata?: Record<string, unknown> | null;
@@ -110,6 +111,7 @@ export class OrderEntity {
     const entity = new OrderEntity();
     entity.id = data.orderId;
     entity.businessId = data.businessId;
+    entity.workspaceId = data.workspaceId;
     entity.deliveryId = data.deliveryId ?? null;
     entity.itemSummary = data.itemSummary ?? null;
     entity.itemMetadata = data.itemMetadata ?? null;

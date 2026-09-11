@@ -103,6 +103,7 @@ export class ActivitySeederService implements OnModuleInit {
       const order = OrderEntity.fromDomain({
         orderId,
         businessId: this.TEST_BUSINESS_ID,
+        workspaceId: TEST_WORKSPACE_ID,
         deliveryId,
         itemSummary: `Seeded Item ${item.daysAgo}`,
         customerName: 'Test Customer',
