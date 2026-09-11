@@ -256,7 +256,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: dist/
+          path: |
+            dist/
+            packages/contracts/dist/
+            packages/utils/dist/
           retention-days: 1
 
       - name: Report build results
@@ -325,6 +328,20 @@ jobs:
 
       - name: Install dependencies
         run: npm install --prefer-offline --no-audit
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: build-artifacts
+          path: .
+
+      - name: Build application if artifacts missing
+        run: |
+          if [ ! -f "dist/api/src/main.js" ]; then
+            echo "Building application for E2E tests..."
+            npm run build
+          fi
 
       - name: Build contracts package
         run: npm run build --workspace=@zanafleet/contracts
