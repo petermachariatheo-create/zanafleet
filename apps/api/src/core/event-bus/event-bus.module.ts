@@ -1,4 +1,4 @@
-import { DynamicModule, Logger, Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { ClientNats } from '@nestjs/microservices/client';
 
 import { DEFAULT_NATS_URL, NATS_CLIENT } from './event-bus.constants';
@@ -14,28 +14,6 @@ import { RetryService } from './services/retry.service';
 export interface EventBusModuleOptions {
   natsUrl?: string;
   isGlobal?: boolean;
-}
-
-/**
- * Mock NATS client for sandbox mode
- */
-class MockNatsClient {
-  private readonly logger = new Logger('MockNatsClient');
-
-  async connect(): Promise<void> {
-    this.logger.log('Mock NATS client connected (sandbox mode)');
-  }
-
-  emit(_subject: string, _data: unknown): { pipe: () => unknown } {
-    this.logger.debug(`Mock NATS emit (sandbox mode): ${_subject}`);
-    return {
-      pipe: () => ({ subscribe: () => ({}) }),
-    };
-  }
-
-  close(): void {
-    this.logger.log('Mock NATS client closed (sandbox mode)');
-  }
 }
 
 /**

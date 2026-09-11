@@ -35,7 +35,7 @@ export class WorkspaceCreatedEventV1 {
   readonly name: string;
   readonly type: WorkspaceType;
   readonly status: WorkspaceStatus;
-  readonly roleTemplates: string[];
+  readonly roleTemplates: readonly string[];
   readonly createdAt: Date;
 
   /**
@@ -87,7 +87,7 @@ export class WorkspaceCreatedEventV1 {
     name: string;
     type: WorkspaceType;
     status: WorkspaceStatus;
-    roleTemplates: string[];
+    roleTemplates: readonly string[];
     createdAt: string;
     correlationId?: string;
     causationId?: string;

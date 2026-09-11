@@ -139,35 +139,6 @@ export function rankCandidates(
   return scored;
 }
 
-@Injectable()
-export class CandidateSelectionService {
-  constructor(private readonly repository: RiderCandidateRepository) {}
-
-  async findAndRankCandidates(params: FindCandidatesParams): Promise<RankedCandidate[]> {
-    const radius = params.radiusMeters ?? DEFAULT_RADIUS_METERS;
-    const limit = params.limit ?? 10;
-
-    const raw = await this.repository.findNearbyRiders({
-      latitude: params.pickup.latitude,
-      longitude: params.pickup.longitude,
-      radiusMeters: radius,
-      now: params.now,
-      limit: limit * 3, // fetch extra to allow ranking/trimming
-    });
-
-    const ranked = rankCandidates(raw, {
-      pickup: params.pickup,
-      scheduledPickupTime: params.scheduledPickupTime ?? null,
-      scheduledDropoffTime: params.scheduledDropoffTime ?? null,
-      considerWindowMinutes: params.considerWindowMinutes ?? DEFAULT_WINDOW_MINUTES,
-      maxDistanceMeters: radius,
-      now: params.now,
-    });
-
-    return ranked.slice(0, limit);
-  }
-}
-
 /**
  * In-memory repository adapter for tests and local simulations.
  */
@@ -200,5 +171,34 @@ export class InMemoryRiderCandidateRepository implements RiderCandidateRepositor
       return within.slice(0, params.limit);
     }
     return within;
+  }
+}
+
+@Injectable()
+export class CandidateSelectionService {
+  constructor(private readonly repository: InMemoryRiderCandidateRepository) {}
+
+  async findAndRankCandidates(params: FindCandidatesParams): Promise<RankedCandidate[]> {
+    const radius = params.radiusMeters ?? DEFAULT_RADIUS_METERS;
+    const limit = params.limit ?? 10;
+
+    const raw = await this.repository.findNearbyRiders({
+      latitude: params.pickup.latitude,
+      longitude: params.pickup.longitude,
+      radiusMeters: radius,
+      now: params.now,
+      limit: limit * 3, // fetch extra to allow ranking/trimming
+    });
+
+    const ranked = rankCandidates(raw, {
+      pickup: params.pickup,
+      scheduledPickupTime: params.scheduledPickupTime ?? null,
+      scheduledDropoffTime: params.scheduledDropoffTime ?? null,
+      considerWindowMinutes: params.considerWindowMinutes ?? DEFAULT_WINDOW_MINUTES,
+      maxDistanceMeters: radius,
+      now: params.now,
+    });
+
+    return ranked.slice(0, limit);
   }
 }

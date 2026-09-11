@@ -11,8 +11,7 @@ import { GeoQueryCoordinator } from './coordinators/geo-query.coordinator';
 import { RiderLocationHistoryEntity } from './entities/rider-location-history.entity';
 import { RiderLocationSnapshotEntity } from './entities/rider-location-snapshot.entity';
 import { UpdateRiderLocationHandler } from './handlers/update-rider-location.handler';
-import { GeoProviderRegistry } from './providers/geo-provider-registry.service';
-import { NoOpGeoProvider } from './providers/noop-geo.provider';
+import { GeoProviderRegistry, NoOpGeoProvider, GEO_PROVIDER } from './providers';
 import { Neo4jRiderCandidateRepository } from './repositories/neo4j-rider-candidate.repository';
 import { RiderLocationRepository } from './repositories/rider-location.repository';
 import { H3Service } from './services/h3.service';
@@ -62,6 +61,10 @@ import { RiderTelemetrySubscriber } from './subscribers/rider-telemetry.subscrib
       inject: [CommandBus],
     },
     GeoQueryCoordinator,
+    {
+      provide: GEO_PROVIDER,
+      useExisting: NoOpGeoProvider,
+    },
   ],
   exports: [
     TypeOrmModule,
@@ -75,6 +78,7 @@ import { RiderTelemetrySubscriber } from './subscribers/rider-telemetry.subscrib
     UpdateRiderLocationHandler,
     RiderTelemetrySubscriber,
     GeoQueryCoordinator,
+    GEO_PROVIDER,
   ],
 })
 export class LocationIntelligenceModule implements OnModuleInit {

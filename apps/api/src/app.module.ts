@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 
 const isSandboxMode = process.env.SANDBOX_MODE === 'true';
 
@@ -38,6 +39,7 @@ import { HttpMetricsInterceptor } from './core/metrics/interceptors/http-metrics
 import { MetricsModule } from './core/metrics/metrics.module';
 import { Neo4jModule } from './core/neo4j';
 import { WebhookModule } from './core/webhook/webhook.module';
+import { ZanafleetThrottlerModule } from './core/throttler/throttler.module';
 import { AccountModule } from './modules/account/account.module';
 import { ActorModule } from './modules/actor/actor.module';
 import { AssetModule } from './modules/asset/asset.module';
@@ -86,6 +88,7 @@ import { WorkspaceModule } from './modules/workspace/workspace.module';
  */
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot(dbConfig),
     EventBusModule.forRoot({
       isGlobal: true,
@@ -98,6 +101,7 @@ import { WorkspaceModule } from './modules/workspace/workspace.module';
     HealthModule,
     MediaModule,
     WebhookModule,
+    ZanafleetThrottlerModule,
     AccountModule,
     ActorModule,
     AuthModule,
@@ -128,7 +132,7 @@ import { WorkspaceModule } from './modules/workspace/workspace.module';
     WorkspaceModule,
     SearchModule,
     AssetModule,
-    MoversModule,
+    // MoversModule,
     OperatorModule,
     SeedModule,
     InteractionModule,
