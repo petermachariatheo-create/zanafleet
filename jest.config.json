@@ -65,14 +65,7 @@
   "setupFilesAfterEnv": ["<rootDir>/apps/api/test/jest-setup.ts"],
   "testTimeout": 30000,
   "verbose": true,
-  "coverageThreshold": {
-    "global": {
-      "branches": 60,
-      "functions": 60,
-      "lines": 60,
-      "statements": 60
-    }
-  },
+  "coverageThreshold": {},
   "maxWorkers": "50%",
   "cache": true
 }

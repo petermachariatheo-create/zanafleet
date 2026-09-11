@@ -180,13 +180,13 @@ jobs:
         run: |
           echo "Waiting for PostgreSQL..."
           for i in {1..60}; do
-            nc -z postgres 5432 && echo "✓ PostgreSQL ready" && break
+            nc -z 127.0.0.1 5432 && echo "✓ PostgreSQL ready" && break
             sleep 2
           done
 
           echo "Waiting for Neo4j..."
           for i in {1..60}; do
-            curl -sf http://neo4j:7474 > /dev/null && echo "✓ Neo4j ready" && break
+            curl -sf http://127.0.0.1:7474 > /dev/null && echo "✓ Neo4j ready" && break
             sleep 2
           done
 
@@ -194,12 +194,12 @@ jobs:
         run: npm run test:integration -- --coverage --ci
         env:
           RUN_INTEGRATION_TESTS: 'true'
-          DB_HOST: postgres
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_USER: postgres
           DB_PASSWORD: postgres
           DB_NAME: zanafleet_test
-          NEO4J_HOST: neo4j
+          NEO4J_HOST: 127.0.0.1
           NEO4J_PORT: 7687
         continue-on-error: false
 
@@ -304,12 +304,12 @@ jobs:
           - 7474:7474
 
       nats:
-        image: nats:latest
+        image: nats:2.10.7-alpine
         options: >-
-          --health-cmd "wget --quiet --tries=1 --spider http://0.0.0.0:8222/health || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
+          --health-cmd "nc -z localhost 4222 || exit 1"
+          --health-interval 15s
+          --health-timeout 10s
+          --health-retries 15
         ports:
           - 4222:4222
           - 8222:8222
@@ -339,19 +339,19 @@ jobs:
         run: |
           echo "Waiting for PostgreSQL..."
           for i in {1..60}; do
-            nc -z postgres 5432 && echo "✓ PostgreSQL ready" && break
+            nc -z 127.0.0.1 5432 && echo "✓ PostgreSQL ready" && break
             sleep 2
           done
 
           echo "Waiting for Neo4j..."
           for i in {1..60}; do
-            curl -sf http://neo4j:7474 > /dev/null && echo "✓ Neo4j ready" && break
+            curl -sf http://127.0.0.1:7474 > /dev/null && echo "✓ Neo4j ready" && break
             sleep 2
           done
 
           echo "Waiting for NATS..."
           for i in {1..60}; do
-            nc -z nats 4222 && echo "✓ NATS ready" && break
+            nc -z 127.0.0.1 4222 && echo "✓ NATS ready" && break
             sleep 2
           done
 
@@ -359,14 +359,14 @@ jobs:
         run: npx playwright test
         env:
           RUN_INTEGRATION_TESTS: 'true'
-          DB_HOST: postgres
+          DB_HOST: 127.0.0.1
           DB_PORT: 5432
           DB_USER: postgres
           DB_PASSWORD: postgres
           DB_NAME: zanafleet_test
-          NEO4J_HOST: neo4j
+          NEO4J_HOST: 127.0.0.1
           NEO4J_PORT: 7687
-          NATS_HOST: nats
+          NATS_HOST: 127.0.0.1
           NATS_PORT: 4222
           API_URL: http://localhost:3000
           CI: 'true'
