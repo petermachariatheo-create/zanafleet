@@ -4,6 +4,13 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 import { AppModule } from './app.module';
 
+// Register ts-node so TypeORM can require() the *.ts migration sources under
+// infra/db/migrations. Node 24 classifies import-syntax .ts files as ESM, which
+// TypeORM's CommonJS loader cannot require(). Skipped in SANDBOX_MODE (sqljs).
+if (process.env.SANDBOX_MODE !== 'true') {
+  require('ts-node').register({ transpileOnly: true });
+}
+
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
 
