@@ -14,8 +14,8 @@
     "target": "es2020",
     "baseUrl": ".",
     "paths": {
-      "@zanafleet/contracts": ["packages/contracts/dist/src"],
-      "@zanafleet/contracts/*": ["packages/contracts/dist/src/*"],
+      "@zanafleet/contracts": ["packages/contracts/dist"],
+      "@zanafleet/contracts/*": ["packages/contracts/dist/*"],
       "@zanafleet/domain": ["packages/domain/dist"],
       "@zanafleet/domain/*": ["packages/domain/dist/*"],
       "@zanafleet/utils": ["packages/utils/dist"],
