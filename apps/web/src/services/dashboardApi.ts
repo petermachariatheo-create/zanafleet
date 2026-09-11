@@ -366,7 +366,7 @@ export async function getMyBusinesses(token: string): Promise<BusinessIdentity[]
     method: 'GET',
     token,
   });
-  const payload = await response.json() as { data: BusinessIdentity[] };
+  const payload = (await response.json()) as { data: BusinessIdentity[] };
   return payload.data;
 }
 
@@ -402,7 +402,10 @@ export async function getBusinessDeliveries(
     method: 'GET',
     token,
   });
-  const payload = await response.json() as { data: DeliveryHistorySummary[]; meta: Record<string, unknown> };
+  const payload = (await response.json()) as {
+    data: DeliveryHistorySummary[];
+    meta: Record<string, unknown>;
+  };
   return { data: payload.data, meta: normalizeMeta(payload.meta) };
 }
 
@@ -439,7 +442,7 @@ export async function getDeliveryTimeline(
     method: 'GET',
     token,
   });
-  const payload = await response.json() as { data: DeliveryTimelineItem[] };
+  const payload = (await response.json()) as { data: DeliveryTimelineItem[] };
   return payload.data;
 }
 
@@ -645,4 +648,3 @@ export async function getSupportRecentPayments(
   });
   return response.json() as Promise<PaginatedResponse<PaymentActivitySummary>>;
 }
-

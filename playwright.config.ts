@@ -32,13 +32,13 @@ function preFlightCheck(): void {
     { name: 'API entry point', path: 'dist/api/src/main.js' },
     {
       name: 'Contracts package',
-      path: 'packages/contracts/dist/src/index.js',
+      path: 'packages/contracts/dist/index.js',
       workspace: '@zanafleet/contracts',
       buildRequired: true,
     },
     {
       name: 'Utils package',
-      path: 'packages/utils/dist/src/index.js',
+      path: 'packages/utils/dist/index.js',
       workspace: '@zanafleet/utils',
       buildRequired: true,
     },
@@ -71,7 +71,7 @@ function preFlightCheck(): void {
   // Check for module resolution in compiled files
   if (existsSync('dist/api/src/core/media/entities/media-asset.entity.js')) {
     const content = readFileSync('dist/api/src/core/media/entities/media-asset.entity.js', 'utf-8');
-    if (content.includes('packages/contracts/dist/src')) {
+    if (content.includes('packages/contracts/dist')) {
       console.log('  ✓ Module resolution: Correctly points to dist/');
     } else if (content.includes('packages/contracts/src')) {
       console.log('  ✗ Module resolution: Still points to source - will fail!');

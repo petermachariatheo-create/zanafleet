@@ -21,12 +21,12 @@
           "target": "es2020",
           "baseUrl": ".",
           "paths": {
-            "@zanafleet/contracts": ["packages/contracts/dist/src"],
-            "@zanafleet/contracts/*": ["packages/contracts/dist/src/*"],
-            "@zanafleet/domain": ["packages/domain/dist/src"],
-            "@zanafleet/domain/*": ["packages/domain/dist/src/*"],
-            "@zanafleet/utils": ["packages/utils/dist/src"],
-            "@zanafleet/utils/*": ["packages/utils/dist/src/*"],
+            "@zanafleet/contracts": ["packages/contracts/dist"],
+            "@zanafleet/contracts/*": ["packages/contracts/dist/*"],
+            "@zanafleet/domain": ["packages/domain/dist"],
+            "@zanafleet/domain/*": ["packages/domain/dist/*"],
+            "@zanafleet/utils": ["packages/utils/dist"],
+            "@zanafleet/utils/*": ["packages/utils/dist/*"],
             "@api/*": ["apps/api/src/*"]
           }
         },
@@ -54,12 +54,12 @@
   "roots": ["<rootDir>/apps/api/src"],
   "moduleNameMapper": {
     "^@api/(.*)$": "<rootDir>/apps/api/src/$1",
-    "^@zanafleet/contracts$": "<rootDir>/packages/contracts/dist/src",
-    "^@zanafleet/contracts/(.*)$": "<rootDir>/packages/contracts/dist/src/$1",
-    "^@zanafleet/domain$": "<rootDir>/packages/domain/dist/src",
-    "^@zanafleet/domain/(.*)$": "<rootDir>/packages/domain/dist/src/$1",
-    "^@zanafleet/utils$": "<rootDir>/packages/utils/dist/src",
-    "^@zanafleet/utils/(.*)$": "<rootDir>/packages/utils/dist/src/$1"
+    "^@zanafleet/contracts$": "<rootDir>/packages/contracts/dist",
+    "^@zanafleet/contracts/(.*)$": "<rootDir>/packages/contracts/dist/$1",
+    "^@zanafleet/domain$": "<rootDir>/packages/domain/dist",
+    "^@zanafleet/domain/(.*)$": "<rootDir>/packages/domain/dist/$1",
+    "^@zanafleet/utils$": "<rootDir>/packages/utils/dist",
+    "^@zanafleet/utils/(.*)$": "<rootDir>/packages/utils/dist/$1"
   },
   "setupFilesAfterEnv": ["<rootDir>/apps/api/test/jest-setup.ts"],
   "testTimeout": 30000,

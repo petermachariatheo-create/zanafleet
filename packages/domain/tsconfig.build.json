@@ -1,0 +1,44 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2020",
+    "paths": {
+      "@zanafleet/contracts": [
+        "../contracts/dist/src"
+      ],
+      "@zanafleet/contracts/*": [
+        "../contracts/dist/src/*"
+      ],
+      "@zanafleet/utils": [
+        "../utils/dist/src"
+      ],
+      "@zanafleet/utils/*": [
+        "../utils/dist/src/*"
+      ],
+      "@zanafleet/domain": [
+        "./dist/src"
+      ],
+      "@zanafleet/domain/*": [
+        "./dist/src/*"
+      ],
+      "@api/*": [
+        "../../apps/api/src/*"
+      ]
+    },
+    "baseUrl": "."
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

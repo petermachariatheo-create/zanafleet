@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build": "tsc && node scripts/add-cjs-exports.js",
-    "clean": "rimraf dist *.tsbuildinfo",
+    "clean": "rimraf dist tsconfig.tsbuildinfo",
     "prebuild": "npm run clean"
   },
   "dependencies": {

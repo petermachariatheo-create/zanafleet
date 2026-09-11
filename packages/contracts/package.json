@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "node -e \"console.error('CWD:', process.cwd())\" && tsc && node scripts/add-cjs-exports.js",
+    "build": "tsc && node scripts/add-cjs-exports.js",
     "clean": "rimraf dist tsconfig.tsbuildinfo",
     "prebuild": "npm run clean",
     "prepare": "npm run build"

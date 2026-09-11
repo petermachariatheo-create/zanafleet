@@ -56,7 +56,10 @@ export async function updateRider(
   return response.json() as Promise<Rider>;
 }
 
-export async function getRiderAvailability(riderId: string, token: string): Promise<RiderAvailability> {
+export async function getRiderAvailability(
+  riderId: string,
+  token: string
+): Promise<RiderAvailability> {
   const response = await apiFetch(`/riders/${encodeURIComponent(riderId)}/availability`, { token });
   return response.json() as Promise<RiderAvailability>;
 }

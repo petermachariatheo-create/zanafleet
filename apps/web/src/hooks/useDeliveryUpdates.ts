@@ -24,7 +24,7 @@ function connectWebSocket(): void {
   }
 
   const wsUrl = process.env.REACT_APP_NATS_WS_URL || 'ws://localhost:8222/ws';
-  
+
   try {
     globalWebSocket = new WebSocket(wsUrl);
   } catch (error) {

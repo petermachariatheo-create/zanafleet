@@ -119,11 +119,12 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       // Wait for async processing
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      const notification = dataSource && dataSource.isInitialized
-        ? await dataSource.manager.findOne(NotificationEntity, {
-            where: { id: result.notificationId },
-          })
-        : null;
+      const notification =
+        dataSource && dataSource.isInitialized
+          ? await dataSource.manager.findOne(NotificationEntity, {
+              where: { id: result.notificationId },
+            })
+          : null;
 
       expect(notification).toBeDefined();
       expect(notification!.status).toBe(NotificationStatus.SENT);

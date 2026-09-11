@@ -80,6 +80,6 @@ export async function listWorkspaces(type?: string): Promise<Workspace[]> {
 export async function getAllowedWorkspaceTypes(actorType: ActorType): Promise<string[]> {
   const path = `/workspaces/allowed-types?actorType=${encodeURIComponent(actorType)}`;
   const response = await apiFetch(path);
-  const data = await response.json() as { allowedTypes: string[] };
+  const data = (await response.json()) as { allowedTypes: string[] };
   return data.allowedTypes;
 }

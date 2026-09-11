@@ -41,7 +41,9 @@ function findMissingFiles() {
   // Find source files that weren't compiled
   const missing = [];
   for (const src of sourceFiles) {
-    const outPath = src.replace('apps/api/src/', 'dist/api/src/').replace('.ts', '.js');
+    const normalizedSrc = src.split(path.sep).join('/');
+    const rel = normalizedSrc.replace(/^apps\/api\/src\//, '');
+    const outPath = path.join('dist', 'api', 'src', rel).replace(/\.ts$/, '.js');
     if (!fs.existsSync(outPath)) {
       missing.push({ src, out: outPath });
     }

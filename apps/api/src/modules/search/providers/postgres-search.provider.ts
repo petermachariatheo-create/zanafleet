@@ -42,16 +42,22 @@ export class PostgresSearchProvider implements ISearchProvider {
 
     if (location && radiusMeters) {
       const pointWkt = `POINT(${location.longitude} ${location.latitude})`;
-      qb.andWhere('ST_DWithin(doc.location::geography, ST_GeomFromText(:point, 4326)::geography, :radius)', {
-        point: pointWkt,
-        radius: radiusMeters,
-      });
+      qb.andWhere(
+        'ST_DWithin(doc.location::geography, ST_GeomFromText(:point, 4326)::geography, :radius)',
+        {
+          point: pointWkt,
+          radius: radiusMeters,
+        }
+      );
     }
 
     // Sorting
     if (sortBy === 'distance' && location) {
       const pointWkt = `POINT(${location.longitude} ${location.latitude})`;
-      qb.addSelect('ST_Distance(doc.location::geography, ST_GeomFromText(:point, 4326)::geography)', 'distance');
+      qb.addSelect(
+        'ST_Distance(doc.location::geography, ST_GeomFromText(:point, 4326)::geography)',
+        'distance'
+      );
       qb.setParameters({ point: pointWkt });
       qb.orderBy('distance', 'ASC');
     } else if (sortBy === 'newest') {

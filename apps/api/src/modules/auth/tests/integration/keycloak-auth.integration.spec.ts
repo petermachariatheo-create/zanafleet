@@ -99,7 +99,9 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       };
 
       // Without a token, the guard should deny access
-      await expect(jwtAuthGuard.canActivate(mockContext as any)).rejects.toThrow(UnauthorizedException);
+      await expect(jwtAuthGuard.canActivate(mockContext as any)).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should deny access with invalid token (401)', async () => {

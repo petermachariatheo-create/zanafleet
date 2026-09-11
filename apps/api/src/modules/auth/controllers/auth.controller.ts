@@ -72,7 +72,9 @@ export class AuthController {
       throw new BadRequestException('Token is required');
     }
 
-    const secret = this.configService.get<string>('auth.jwt.secret') || 'INSECURE_DEV_SECRET_CHANGE_IN_PRODUCTION';
+    const secret =
+      this.configService.get<string>('auth.jwt.secret') ||
+      'INSECURE_DEV_SECRET_CHANGE_IN_PRODUCTION';
 
     const payload = await this.jwtService.verifyAsync<{
       sub: string;

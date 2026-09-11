@@ -86,9 +86,9 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
             username: process.env.POSTGRES_USER ?? 'postgres',
             password: process.env.POSTGRES_PASSWORD ?? 'postgres',
             database: process.env.POSTGRES_DB ?? 'zanafleet_test',
-        entities: [PolicyEntity, PolicyDecisionLogEntity],
-        synchronize: true,
-        connectTimeoutMS: 5000,
+            entities: [PolicyEntity, PolicyDecisionLogEntity],
+            synchronize: true,
+            connectTimeoutMS: 5000,
           }),
           TypeOrmModule.forFeature([PolicyEntity, PolicyDecisionLogEntity]),
         ],
@@ -487,9 +487,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       });
 
       const requestIds = Array.from({ length: 5 }, () => uuidv4());
-      const contexts = Array.from({ length: 5 }, (_, i) =>
-        createContext({ deliveryId: uuidv4() })
-      );
+      const contexts = Array.from({ length: 5 }, (_, i) => createContext({ deliveryId: uuidv4() }));
 
       await Promise.all(
         contexts.map((ctx, i) => service.evaluate(ctx, { requestId: requestIds[i] }))
@@ -554,9 +552,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       const evaluationPromises: Promise<unknown>[] = [];
 
       for (let i = 0; i < 10; i++) {
-        evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: uuidv4() }))
-        );
+        evaluationPromises.push(service.evaluate(createContext({ deliveryId: uuidv4() })));
 
         if (i === 5) {
           initialPolicy.effect = PolicyEffect.BLOCK;
@@ -589,9 +585,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       const evaluationPromises: Promise<unknown>[] = [];
 
       for (let i = 0; i < 10; i++) {
-        evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: uuidv4() }))
-        );
+        evaluationPromises.push(service.evaluate(createContext({ deliveryId: uuidv4() })));
 
         if (i === 5) {
           await policyRepo.delete({ id: policy.id });
@@ -623,9 +617,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       const evaluationPromises: Promise<unknown>[] = [];
 
       for (let i = 0; i < 10; i++) {
-        evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: uuidv4() }))
-        );
+        evaluationPromises.push(service.evaluate(createContext({ deliveryId: uuidv4() })));
 
         if (i === 5) {
           await createTestPolicy({
@@ -662,9 +654,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       const updatePromises: Promise<unknown>[] = [];
 
       for (let i = 0; i < 20; i++) {
-        evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: uuidv4() }))
-        );
+        evaluationPromises.push(service.evaluate(createContext({ deliveryId: uuidv4() })));
 
         updatePromises.push(
           (async () => {
@@ -711,9 +701,7 @@ describe('PolicyEvaluationEngineService (Integration)', () => {
       const evaluationPromises: Promise<unknown>[] = [];
 
       for (let i = 0; i < 15; i++) {
-        evaluationPromises.push(
-          service.evaluate(createContext({ deliveryId: uuidv4() }))
-        );
+        evaluationPromises.push(service.evaluate(createContext({ deliveryId: uuidv4() })));
 
         if (i === 5) {
           globalPolicy.scope = PolicyScope.RIDER;

@@ -104,7 +104,7 @@ export async function getMessages(
     limit: String(limit),
   });
   const response = await apiFetch(`/messages?${params}`, { token });
-  const result = await response.json() as { data: ApiMessagePreview[]; meta: PaginationMeta };
+  const result = (await response.json()) as { data: ApiMessagePreview[]; meta: PaginationMeta };
   return {
     data: result.data.map(transformMessagePreview),
     meta: result.meta,
@@ -113,7 +113,7 @@ export async function getMessages(
 
 export async function getThread(id: string, token?: string): Promise<MessageThread> {
   const response = await apiFetch(`/messages/${encodeURIComponent(id)}`, { token });
-  const result = await response.json() as ApiMessageThread;
+  const result = (await response.json()) as ApiMessageThread;
   return transformThread(result);
 }
 
@@ -127,6 +127,6 @@ export async function sendMessage(
     token,
     body: JSON.stringify(payload),
   });
-  const result = await response.json() as ApiMessageThread;
+  const result = (await response.json()) as ApiMessageThread;
   return transformThread(result);
 }

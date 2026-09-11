@@ -60,7 +60,9 @@ export interface OrdersListResponse {
   };
 }
 
-export async function placeCustomerOrder(input: PlaceCustomerOrderInput): Promise<PlaceCustomerOrderResult> {
+export async function placeCustomerOrder(
+  input: PlaceCustomerOrderInput
+): Promise<PlaceCustomerOrderResult> {
   const response = await apiFetch('/orders/customer', {
     method: 'POST',
     body: JSON.stringify(input),
@@ -110,7 +112,9 @@ export async function getOrderHistory(params?: {
 
 export async function updateOrderStatus(
   orderId: string,
-  updates: Partial<Pick<Order, 'status' | 'itemSummary' | 'customerName' | 'customerPhone' | 'scheduledTime'>>
+  updates: Partial<
+    Pick<Order, 'status' | 'itemSummary' | 'customerName' | 'customerPhone' | 'scheduledTime'>
+  >
 ): Promise<Order> {
   const response = await apiFetch(`/orders/${encodeURIComponent(orderId)}`, {
     method: 'PATCH',

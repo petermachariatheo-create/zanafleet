@@ -154,9 +154,10 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       expect(riderId).toBeDefined();
 
       // Verify the rider was created with the Sacco's location
-      const rider = dataSource && dataSource.isInitialized
-        ? await dataSource.manager.findOne(RiderEntity, { where: { id: riderId } })
-        : null;
+      const rider =
+        dataSource && dataSource.isInitialized
+          ? await dataSource.manager.findOne(RiderEntity, { where: { id: riderId } })
+          : null;
       expect(rider!.location).toEqual(mombasaLocation);
     });
 

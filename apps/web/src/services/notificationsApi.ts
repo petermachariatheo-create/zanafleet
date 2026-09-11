@@ -32,7 +32,7 @@ export async function getNotifications(
     limit: String(limit),
   });
   const response = await apiFetch(`/notifications?${params}`, { token });
-  const result = await response.json() as { data: ApiNotification[]; meta: PaginationMeta };
+  const result = (await response.json()) as { data: ApiNotification[]; meta: PaginationMeta };
   return {
     data: result.data.map(transformNotification),
     meta: result.meta,
@@ -44,6 +44,6 @@ export async function markNotificationRead(id: string, token?: string): Promise<
     method: 'PATCH',
     token,
   });
-  const result = await response.json() as ApiNotification;
+  const result = (await response.json()) as ApiNotification;
   return transformNotification(result);
 }

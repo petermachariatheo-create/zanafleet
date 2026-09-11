@@ -29,7 +29,10 @@ import { MarkDeliveryPickedUpHandler } from './handlers/mark-delivery-picked-up.
 import { RecordDeliveryAttemptFailedHandler } from './handlers/record-delivery-attempt-failed.handler';
 import { AssignmentRulesService } from './services/assignment-rules.service';
 import { DeliveryService } from './services/delivery.service';
-import { CandidateSelectionService, InMemoryRiderCandidateRepository } from './services/candidate-selection.service';
+import {
+  CandidateSelectionService,
+  InMemoryRiderCandidateRepository,
+} from './services/candidate-selection.service';
 import { DeliveryScheduledSubscriber } from './subscribers/delivery-scheduled.subscriber';
 import { OrderCreatedSubscriber } from './subscribers/order-created.subscriber';
 

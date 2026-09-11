@@ -60,7 +60,7 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
   it('2. should rank title matches higher than description matches', async () => {
     const descMatchId = uuidv4();
     const titleMatchId = uuidv4();
-    
+
     await provider.index({
       entityId: descMatchId,
       entityType: 'Order',

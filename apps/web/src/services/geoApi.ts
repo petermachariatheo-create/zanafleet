@@ -178,8 +178,6 @@ export async function checkServiceAreaContains(
     lat: params.lat,
     lng: params.lng,
   });
-  const response = await apiFetch(
-    `/geo/service-area/${encodeURIComponent(areaId)}/contains${qs}`
-  );
+  const response = await apiFetch(`/geo/service-area/${encodeURIComponent(areaId)}/contains${qs}`);
   return response.json() as Promise<ServiceAreaContainsResult>;
 }

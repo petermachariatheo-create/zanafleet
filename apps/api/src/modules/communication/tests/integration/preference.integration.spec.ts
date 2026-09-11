@@ -90,12 +90,12 @@ const shouldRunIntegration = process.env.RUN_INTEGRATION_TESTS === 'true';
       expect(result.notificationId).toBeDefined();
 
       // Verify no notification was actually sent (should be skipped)
-      const notifications = dataSource && dataSource.isInitialized
-        ? await dataSource.manager.query(
-            'SELECT * FROM notifications WHERE "recipientId" = $1',
-            [recipientId]
-          )
-        : [];
+      const notifications =
+        dataSource && dataSource.isInitialized
+          ? await dataSource.manager.query('SELECT * FROM notifications WHERE "recipientId" = $1', [
+              recipientId,
+            ])
+          : [];
 
       // Notification should either not exist or have SKIPPED status
       expect(notifications.length === 0 || notifications[0].status === 'skipped').toBe(true);

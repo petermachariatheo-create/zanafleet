@@ -73,17 +73,18 @@ export class TemplateService {
 
     // Try workspace-specific template first
     if (workspaceId) {
-      const workspaceTemplate = await this.templateRepository
+      const workspaceQuery = this.templateRepository
         .createQueryBuilder('template')
         .where('template.name = :name', { name })
         .andWhere('template.locale = :locale', { locale })
         .andWhere('template.isActive = :isActive', { isActive: true })
-        .andWhere('template.workspaceId = :workspaceId', { workspaceId })
-        .getOne();
+        .andWhere('template.workspaceId = :workspaceId', { workspaceId });
 
       if (channel) {
-        workspaceTemplate && workspaceTemplate.channel === channel ? workspaceTemplate : null;
+        workspaceQuery.andWhere('template.channel = :channel', { channel });
       }
+
+      const workspaceTemplate = await workspaceQuery.getOne();
 
       if (workspaceTemplate) {
         this.logger.debug(`Found workspace template: ${name} for workspace: ${workspaceId}`);
@@ -92,17 +93,18 @@ export class TemplateService {
     }
 
     // Fall back to global template (workspaceId IS NULL)
-    const globalTemplate = await this.templateRepository
+    const globalQuery = this.templateRepository
       .createQueryBuilder('template')
       .where('template.name = :name', { name })
       .andWhere('template.locale = :locale', { locale })
       .andWhere('template.isActive = :isActive', { isActive: true })
-      .andWhere('template.workspaceId IS NULL')
-      .getOne();
+      .andWhere('template.workspaceId IS NULL');
 
-    if (channel && globalTemplate && globalTemplate.channel !== channel) {
-      return null;
+    if (channel) {
+      globalQuery.andWhere('template.channel = :channel', { channel });
     }
+
+    const globalTemplate = await globalQuery.getOne();
 
     if (globalTemplate) {
       this.logger.debug(`Found global template: ${name}`);

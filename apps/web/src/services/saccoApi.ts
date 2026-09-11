@@ -54,7 +54,10 @@ export async function getSaccoQueue(
   saccoId: string,
   token: string,
   params?: { page?: number; limit?: number }
-): Promise<{ data: SaccoQueueItem[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+): Promise<{
+  data: SaccoQueueItem[];
+  meta: { page: number; limit: number; total: number; totalPages: number };
+}> {
   const qs = new URLSearchParams();
   if (params?.page) qs.set('page', String(params.page));
   if (params?.limit) qs.set('limit', String(params.limit));
@@ -63,5 +66,8 @@ export async function getSaccoQueue(
     ? `/saccos/${encodeURIComponent(saccoId)}/queue?${queryString}`
     : `/saccos/${encodeURIComponent(saccoId)}/queue`;
   const response = await apiFetch(path, { token });
-  return response.json() as Promise<{ data: SaccoQueueItem[]; meta: { page: number; limit: number; total: number; totalPages: number } }>;
+  return response.json() as Promise<{
+    data: SaccoQueueItem[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }>;
 }
