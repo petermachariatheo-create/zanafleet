@@ -121,6 +121,7 @@ export class ActivitySeederService implements OnModuleInit {
       const delivery = DeliveryEntity.fromDomain({
         deliveryId,
         businessId: this.TEST_BUSINESS_ID,
+        workspaceId: TEST_WORKSPACE_ID,
         status: item.delivery,
         assignedRiderId: item.delivery !== DeliveryStatus.Requested ? this.TEST_RIDER_ID : null,
         createdAt: date,

@@ -167,6 +167,7 @@ export class DeliveryEntity {
   static fromDomain(data: {
     deliveryId: string;
     businessId: string;
+    workspaceId: string;
     externalOrderId?: string | null;
     pickupLocationId?: string | null;
     dropoffLocationId?: string | null;
@@ -196,6 +197,7 @@ export class DeliveryEntity {
     const e = new DeliveryEntity();
     e.id = data.deliveryId;
     e.businessId = data.businessId;
+    e.workspaceId = data.workspaceId;
     e.externalOrderId = data.externalOrderId ?? null;
     e.pickupLocationId = data.pickupLocationId ?? null;
     e.dropoffLocationId = data.dropoffLocationId ?? null;
