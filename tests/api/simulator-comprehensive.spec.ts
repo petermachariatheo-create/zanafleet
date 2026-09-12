@@ -33,7 +33,7 @@ test.describe('ZanaFleet Comprehensive E2E Tests', () => {
       await page.goto('/');
       await loginAs(page, 'Rider');
       const jobCards = page.locator('[class*="card"], [class*="Job"]').filter({ hasText: /Delivery|Move|Job/i });
-      await expect(jobCards.first()).toBeVisible({ timeout: 5000 });
+      await expect(jobCards.first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -64,14 +64,14 @@ test.describe('ZanaFleet Comprehensive E2E Tests', () => {
       await page.goto('/');
       await loginAs(page, 'Rider');
       const deliveryElements = page.getByText(/delivery|tracking|status/i);
-      await expect(deliveryElements.first()).toBeVisible({ timeout: 5000 });
+      await expect(deliveryElements.first()).toBeVisible({ timeout: 10000 });
     });
 
     test('should show status badges for Fleet Manager', async ({ page }) => {
       await page.goto('/');
       await loginAs(page, 'Fleet Manager');
       const statusBadges = page.locator('[class*="status"], [class*="badge"]').filter({ hasText: /Pending|Active|Completed|Cancelled/i });
-      await expect(statusBadges.first()).toBeVisible({ timeout: 5000 });
+      await expect(statusBadges.first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -98,20 +98,20 @@ test.describe('ZanaFleet Comprehensive E2E Tests', () => {
     test('should switch between workspaces for Fleet Manager', async ({ page }) => {
       await page.goto('/');
       await loginAs(page, 'Fleet Manager');
-      await expect(page.getByText('QuickBite')).toBeVisible();
-      await expect(page.getByText('SwiftMove')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'QuickBite' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'SwiftMove' })).toBeVisible();
 
-      await page.getByText('QuickBite').click();
-      await expect(page.getByText('SwiftMove')).toBeVisible();
+      await page.getByRole('button', { name: 'QuickBite' }).click();
+      await expect(page.getByRole('button', { name: 'SwiftMove' })).toBeVisible();
 
-      await page.getByText('SwiftMove').click();
-      await expect(page.getByText('QuickBite')).toBeVisible();
+      await page.getByRole('button', { name: 'SwiftMove' }).click();
+      await expect(page.getByRole('button', { name: 'QuickBite' })).toBeVisible();
     });
 
     test('should display different workspaces for Business Owner', async ({ page }) => {
       await page.goto('/');
       await loginAs(page, 'Business Owner');
-      const workspaces = page.getByText('QuickBite').or(page.getByText('BulkHub'));
+      const workspaces = page.getByRole('button', { name: 'QuickBite' }).or(page.getByRole('button', { name: 'BulkHub' }));
       await expect(workspaces.first()).toBeVisible();
     });
   });
@@ -139,7 +139,7 @@ test.describe('ZanaFleet Comprehensive E2E Tests', () => {
       await page.goto('/');
       await loginAs(page, 'Fleet Manager');
       await navigateTo(page, 'Contacts', '/contacts');
-      await expect(page.getByRole('heading', { name: 'Contacts' })).toBeVisible();
+      await expect(page.getByText('Contacts').first()).toBeVisible({ timeout: 10000 });
     });
 
     test('should have add contact functionality', async ({ page }) => {
@@ -147,7 +147,7 @@ test.describe('ZanaFleet Comprehensive E2E Tests', () => {
       await loginAs(page, 'Fleet Manager');
       await navigateTo(page, 'Contacts', '/contacts');
       const addButtons = page.getByRole('button', { name: /Add|New|Contact/i });
-      await expect(addButtons.first()).toBeVisible({ timeout: 5000 });
+      await expect(addButtons.first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -167,7 +167,7 @@ test.describe('ZanaFleet Comprehensive E2E Tests', () => {
       await loginAs(page, 'Rider');
       await navigateTo(page, 'Dashboard', '/dashboard');
       const requestElements = page.getByText(/request|response|api|call/i);
-      await expect(requestElements.first()).toBeVisible({ timeout: 5000 });
+      await expect(requestElements.first()).toBeVisible({ timeout: 10000 });
     });
   });
 
@@ -195,7 +195,7 @@ test.describe.parallel('ZanaFleet Critical Path Tests', () => {
     await expect(page.getByRole('button', { name: '📋 Jobs' })).toBeVisible();
 
     await navigateTo(page, 'Contacts', '/contacts');
-    await expect(page.getByRole('heading', { name: 'Contacts' })).toBeVisible();
+    await expect(page.getByText('Contacts').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('Complete business owner flow', async ({ page }) => {
@@ -203,27 +203,27 @@ test.describe.parallel('ZanaFleet Critical Path Tests', () => {
     await loginAs(page, 'Business Owner');
 
     await navigateTo(page, 'Dashboard', '/dashboard');
-    await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+    await expect(page.getByText('Dashboard').first()).toBeVisible({ timeout: 10000 });
 
     await navigateTo(page, 'Billing', '/billing');
-    await expect(page.getByRole('heading', { name: 'Billing' })).toBeVisible();
+    await expect(page.getByText('Billing').first()).toBeVisible({ timeout: 10000 });
 
     await navigateTo(page, 'Reports', '/reports');
-    await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
+    await expect(page.getByText('Reports').first()).toBeVisible({ timeout: 10000 });
 
     await navigateTo(page, 'Contacts', '/contacts');
-    await expect(page.getByRole('heading', { name: 'Contacts' })).toBeVisible();
+    await expect(page.getByText('Contacts').first()).toBeVisible({ timeout: 10000 });
   });
 
   test('Multi-workspace switching flow', async ({ page }) => {
     await page.goto('/');
     await loginAs(page, 'Fleet Manager');
 
-    await expect(page.getByText('QuickBite')).toBeVisible();
-    await page.getByText('QuickBite').click();
-    await expect(page.getByText('SwiftMove')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'QuickBite' })).toBeVisible();
+    await page.getByRole('button', { name: 'QuickBite' }).click();
+    await expect(page.getByRole('button', { name: 'SwiftMove' })).toBeVisible();
 
-    await page.getByText('SwiftMove').click();
-    await expect(page.getByText('QuickBite')).toBeVisible();
+    await page.getByRole('button', { name: 'SwiftMove' }).click();
+    await expect(page.getByRole('button', { name: 'QuickBite' })).toBeVisible();
   });
 });

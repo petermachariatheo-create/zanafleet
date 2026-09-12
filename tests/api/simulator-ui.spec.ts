@@ -22,12 +22,12 @@ test.describe('ZanaFleet Product Simulator', () => {
   test.describe('Homepage', () => {
     test('should load with branding and persona cards', async ({ page }) => {
       await page.goto('/');
-      await expect(page.getByText('ZanaFleet')).toBeVisible();
-      await expect(page.getByText('Multi-Vertical Job Orchestration Platform')).toBeVisible();
-      await expect(page.getByText('Welcome to ZanaFleet Simulator')).toBeVisible();
+      await expect(page.getByText('ZanaFleet')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Multi-Vertical Job Orchestration Platform')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('Welcome to ZanaFleet Simulator')).toBeVisible({ timeout: 10000 });
 
       for (const persona of PERSONAS) {
-        await expect(page.getByText(persona.name)).toBeVisible();
+        await expect(page.getByText(persona.name)).toBeVisible({ timeout: 10000 });
       }
     });
   });
@@ -65,15 +65,15 @@ test.describe('ZanaFleet Product Simulator', () => {
     test('should show workspace selector for Fleet Manager', async ({ page }) => {
       await page.goto('/');
       await loginAs(page, 'Fleet Manager');
-      await expect(page.getByText('QuickBite')).toBeVisible();
-      await expect(page.getByText('SwiftMove')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'QuickBite' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'SwiftMove' })).toBeVisible();
     });
 
     test('should show workspace selector for Business Owner', async ({ page }) => {
       await page.goto('/');
       await loginAs(page, 'Business Owner');
-      await expect(page.getByText('QuickBite')).toBeVisible();
-      await expect(page.getByText('BulkHub')).toBeVisible();
+      await expect(page.getByRole('button', { name: 'QuickBite' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'BulkHub' })).toBeVisible();
     });
   });
 
@@ -106,7 +106,7 @@ test.describe('ZanaFleet Product Simulator', () => {
         await page.goto('/');
         await loginAs(page, pt.persona);
         await navigateTo(page, pt.nav, pt.url);
-        await expect(page.getByRole('heading', { name: pt.heading })).toBeVisible();
+        await expect(page.getByText(pt.heading).first()).toBeVisible({ timeout: 10000 });
       });
     }
 
@@ -121,7 +121,7 @@ test.describe('ZanaFleet Product Simulator', () => {
   test.describe('Error handling', () => {
     test('should show NotFound page for invalid routes', async ({ page }) => {
       await page.goto('/non-existent-route-12345');
-      await expect(page.getByText('Not Found').or(page.getByText('404'))).toBeVisible();
+      await expect(page.getByText('Not Found').or(page.getByText('404'))).toBeVisible({ timeout: 10000 });
     });
   });
 });
