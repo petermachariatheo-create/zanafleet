@@ -1,175 +1,127 @@
 import { test, expect } from '@playwright/test';
 
-/**
- * ZanaFleet Product Simulator UI Tests
- *
- * These tests verify the React Simulator functionality:
- * - Multi-vertical job orchestration (delivery, moving, wholesale, fleet, marketplace)
- * - Multi-workspace support
- * - Job creation and workflow
- * - Wallet, Billing, Maps features
- * - Contact management
- * - Reporting dashboard
- */
+const PERSONAS = [
+  { name: 'Rider', role: 'rider' },
+  { name: 'Fleet Manager', role: 'fleet-manager' },
+  { name: 'Business Owner', role: 'business-owner' },
+  { name: 'Marketplace Contractor', role: 'marketplace-contractor' },
+  { name: 'System Admin', role: 'system-admin' },
+] as const;
+
+async function loginAs(page: any, personaName: string) {
+  await page.getByText(personaName).click();
+  await expect(page).toHaveURL('/jobs');
+}
+
+async function navigateTo(page: any, linkName: string, expectedUrl: string) {
+  await page.getByText(linkName).first().click();
+  await expect(page).toHaveURL(expectedUrl);
+}
 
 test.describe('ZanaFleet Product Simulator', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto('/');
-  });
-
   test.describe('Homepage', () => {
-    test('should load the homepage with branding', async ({ page }) => {
+    test('should load with branding and persona cards', async ({ page }) => {
+      await page.goto('/');
       await expect(page.getByText('ZanaFleet')).toBeVisible();
       await expect(page.getByText('Multi-Vertical Job Orchestration Platform')).toBeVisible();
       await expect(page.getByText('Welcome to ZanaFleet Simulator')).toBeVisible();
-    });
 
-    test('should show persona cards for login', async ({ page }) => {
-      // Check for persona cards
-      await expect(page.getByText('Rider')).toBeVisible();
-      await expect(page.getByText('Fleet Manager')).toBeVisible();
-      await expect(page.getByText('Business Owner')).toBeVisible();
-      await expect(page.getByText('Marketplace Contractor')).toBeVisible();
-      await expect(page.getByText('System Admin')).toBeVisible();
-    });
-
-    test('should show workspace selector after login', async ({ page }) => {
-      // Click on Fleet Manager persona to login
-      await page.getByText('Fleet Manager').click();
-
-      // Should navigate to jobs page
-      await expect(page).toHaveURL('/jobs');
+      for (const persona of PERSONAS) {
+        await expect(page.getByText(persona.name)).toBeVisible();
+      }
     });
   });
 
   test.describe('Authentication', () => {
-    test('should login as rider', async ({ page }) => {
-      await page.getByText('Rider').click();
-      await expect(page).toHaveURL('/jobs');
-    });
-
-    test('should login as fleet manager', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-      await expect(page).toHaveURL('/jobs');
-    });
-
-    test('should login as business owner', async ({ page }) => {
-      await page.getByText('Business Owner').click();
-      await expect(page).toHaveURL('/jobs');
-    });
-  });
-
-  test.describe('Job Feed', () => {
-    test('should display job feed after login', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-      await expect(page).toHaveURL('/jobs');
-      // Should show job cards - use more specific selector
-      await expect(page.getByRole('button', { name: '📋 Jobs' })).toBeVisible();
-    });
+    for (const persona of PERSONAS) {
+      test(`should login as ${persona.name}`, async ({ page }) => {
+        await page.goto('/');
+        await loginAs(page, persona.name);
+      });
+    }
   });
 
   test.describe('Navigation', () => {
-    test('should navigate between pages', async ({ page }) => {
-      // Login first
-      await page.getByText('Fleet Manager').click();
-      await expect(page).toHaveURL('/jobs');
+    const navTests = [
+      { persona: 'Fleet Manager', from: '/jobs', to: 'Dashboard', url: '/dashboard' },
+      { persona: 'Fleet Manager', from: '/jobs', to: 'Contacts', url: '/contacts' },
+      { persona: 'Business Owner', from: '/jobs', to: 'Dashboard', url: '/dashboard' },
+      { persona: 'Business Owner', from: '/jobs', to: 'Reports', url: '/reports' },
+      { persona: 'Business Owner', from: '/jobs', to: 'Billing', url: '/billing' },
+      { persona: 'Rider', from: '/jobs', to: 'Wallet', url: '/wallet' },
+      { persona: 'Fleet Manager', from: '/jobs', to: 'Maps', url: '/maps' },
+    ];
 
-      // Navigate to Dashboard
-      await page.getByText('Dashboard').first().click();
-      await expect(page).toHaveURL('/dashboard');
-
-      // Navigate to Contacts
-      await page.getByText('Contacts').first().click();
-      await expect(page).toHaveURL('/contacts');
-    });
+    for (const nav of navTests) {
+      test(`should navigate from ${nav.from} to ${nav.to} as ${nav.persona}`, async ({ page }) => {
+        await page.goto('/');
+        await loginAs(page, nav.persona);
+        await navigateTo(page, nav.to, nav.url);
+      });
+    }
   });
 
   test.describe('Multi-workspace support', () => {
-    test('should show workspace selector', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-
-      // Should see workspace selector
+    test('should show workspace selector for Fleet Manager', async ({ page }) => {
+      await page.goto('/');
+      await loginAs(page, 'Fleet Manager');
       await expect(page.getByText('QuickBite')).toBeVisible();
       await expect(page.getByText('SwiftMove')).toBeVisible();
     });
 
-    test('should switch between workspaces', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-
-      // Just verify the workspaces are visible in the UI
+    test('should show workspace selector for Business Owner', async ({ page }) => {
+      await page.goto('/');
+      await loginAs(page, 'Business Owner');
       await expect(page.getByText('QuickBite')).toBeVisible();
+      await expect(page.getByText('BulkHub')).toBeVisible();
     });
   });
 
   test.describe('Multi-vertical support', () => {
-    test('should show delivery jobs', async ({ page }) => {
-      await page.getByText('Rider').click();
-
-      // Should see delivery-related job elements - use button role
+    test('should show job feed for Rider (delivery)', async ({ page }) => {
+      await page.goto('/');
+      await loginAs(page, 'Rider');
       await expect(page.getByRole('button', { name: '📋 Jobs' })).toBeVisible();
     });
 
-    test('should show moving jobs', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-
-      // Should see jobs from different verticals - use button role
+    test('should show job feed for Fleet Manager (moving)', async ({ page }) => {
+      await page.goto('/');
+      await loginAs(page, 'Fleet Manager');
       await expect(page.getByRole('button', { name: '📋 Jobs' })).toBeVisible();
     });
   });
 
-  test.describe('Dashboard', () => {
-    test('should display dashboard metrics', async ({ page }) => {
-      await page.getByText('Business Owner').click();
-      await page.getByText('Dashboard').first().click();
+  test.describe('Page content verification', () => {
+    const pageTests = [
+      { persona: 'Business Owner', nav: 'Dashboard', heading: 'Dashboard', url: '/dashboard' },
+      { persona: 'Business Owner', nav: 'Reports', heading: 'Reports', url: '/reports' },
+      { persona: 'Business Owner', nav: 'Billing', heading: 'Billing', url: '/billing' },
+      { persona: 'Rider', nav: 'Wallet', heading: 'Wallet', url: '/wallet' },
+      { persona: 'Fleet Manager', nav: 'Maps', heading: 'Map View', url: '/maps' },
+      { persona: 'Fleet Manager', nav: 'Contacts', heading: 'Contacts', url: '/contacts' },
+    ];
 
-      // Should show metrics - look for the metrics heading
-      await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
-    });
-  });
+    for (const pt of pageTests) {
+      test(`should display ${pt.heading} page for ${pt.persona}`, async ({ page }) => {
+        await page.goto('/');
+        await loginAs(page, pt.persona);
+        await navigateTo(page, pt.nav, pt.url);
+        await expect(page.getByRole('heading', { name: pt.heading })).toBeVisible();
+      });
+    }
 
-  test.describe('Reports', () => {
-    test('should display reports page', async ({ page }) => {
-      await page.getByText('Business Owner').click();
-      await page.getByText('Reports').first().click();
-
-      await expect(page.getByRole('heading', { name: 'Reports' })).toBeVisible();
-    });
-  });
-
-  test.describe('Wallet', () => {
-    test('should display wallet page', async ({ page }) => {
-      await page.getByText('Rider').click();
-      await page.getByText('Wallet').first().click();
-
-      await expect(page.getByRole('heading', { name: 'Wallet' })).toBeVisible();
+    test('should show Balance on Wallet page', async ({ page }) => {
+      await page.goto('/');
+      await loginAs(page, 'Rider');
+      await navigateTo(page, 'Wallet', '/wallet');
       await expect(page.getByText('Balance')).toBeVisible();
     });
   });
 
-  test.describe('Billing', () => {
-    test('should display billing page', async ({ page }) => {
-      await page.getByText('Business Owner').click();
-      await page.getByText('Billing').first().click();
-
-      await expect(page.getByRole('heading', { name: 'Billing' })).toBeVisible();
-    });
-  });
-
-  test.describe('Maps', () => {
-    test('should display maps page', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-      await page.getByText('Maps').first().click();
-
-      await expect(page.getByRole('heading', { name: 'Map View' })).toBeVisible();
-    });
-  });
-
-  test.describe('Contacts', () => {
-    test('should display contacts page', async ({ page }) => {
-      await page.getByText('Fleet Manager').click();
-      await page.getByText('Contacts').first().click();
-
-      await expect(page.getByRole('heading', { name: 'Contacts' })).toBeVisible();
+  test.describe('Error handling', () => {
+    test('should show NotFound page for invalid routes', async ({ page }) => {
+      await page.goto('/non-existent-route-12345');
+      await expect(page.getByText('Not Found').or(page.getByText('404'))).toBeVisible();
     });
   });
 });
