@@ -22,7 +22,7 @@ test.describe('ZanaFleet Product Simulator', () => {
   test.describe('Homepage', () => {
     test('should load with branding and persona cards', async ({ page }) => {
       await page.goto('/');
-      await expect(page.getByText('ZanaFleet')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText('ZanaFleet', { exact: true }).first()).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Multi-Vertical Job Orchestration Platform')).toBeVisible({ timeout: 10000 });
       await expect(page.getByText('Welcome to ZanaFleet Simulator')).toBeVisible({ timeout: 10000 });
 
