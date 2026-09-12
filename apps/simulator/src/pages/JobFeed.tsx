@@ -72,6 +72,9 @@ const JobFeed: React.FC = () => {
         {/* Navigation */}
         <nav style={styles.nav}>
           <button style={styles.navItemActive}>📋 Jobs</button>
+          <button style={styles.navItem} onClick={() => navigate('/order/create')}>
+            Orders
+          </button>
           <button style={styles.navItem} onClick={() => navigate('/dashboard')}>
             📊 Dashboard
           </button>
@@ -116,6 +119,21 @@ const JobFeed: React.FC = () => {
               </option>
             ))}
           </select>
+          <div style={styles.workspaceChoices}>
+            {workspacesForUser.map((ws) => (
+              <button
+                key={ws.id}
+                type="button"
+                onClick={() => setFilter(ws.id)}
+                style={{
+                  ...styles.workspaceChoice,
+                  ...(filter === ws.id ? styles.workspaceChoiceActive : {}),
+                }}
+              >
+                {ws.name}
+              </button>
+            ))}
+          </div>
         </div>
       </aside>
 
@@ -123,6 +141,11 @@ const JobFeed: React.FC = () => {
       <main style={styles.main}>
         <header style={styles.header}>
           <h1 style={styles.title}>Job Feed</h1>
+          {currentUser?.role === 'BUSINESS_OWNER' && (
+            <button style={styles.createOrderButton} onClick={() => navigate('/order/create')}>
+              Create Order
+            </button>
+          )}
           <div style={styles.headerStats}>
             <div style={styles.headerStat}>
               <span style={styles.headerStatValue}>{userJobs.length}</span>
@@ -334,6 +357,26 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '14px',
     background: '#fff',
   },
+  workspaceChoices: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  workspaceChoice: {
+    padding: '8px 10px',
+    background: '#fff',
+    border: '1px solid #ddd',
+    borderRadius: '6px',
+    color: '#444',
+    cursor: 'pointer',
+    textAlign: 'left',
+  },
+  workspaceChoiceActive: {
+    background: '#FFF5F0',
+    borderColor: '#FF6B35',
+    color: '#FF6B35',
+    fontWeight: 'bold',
+  },
   main: {
     flex: 1,
     padding: '30px',
@@ -348,6 +391,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '28px',
     fontWeight: 'bold',
     color: '#333',
+  },
+  createOrderButton: {
+    padding: '10px 16px',
+    background: '#FF6B35',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontWeight: 'bold',
   },
   headerStats: {
     display: 'flex',

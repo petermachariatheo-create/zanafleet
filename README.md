@@ -81,6 +81,12 @@ zanafleet/
 
 ## Getting Started
 
+## Simulator and Playwright coverage
+
+The simulator’s browser-page inventory, navigation contract, Playwright flow map, API-only coverage, and follow-up plan are maintained in [docs/simulator-playwright-page-map.md](docs/simulator-playwright-page-map.md).
+
+---
+
 1. **Install Dependencies**
 
 ```bash

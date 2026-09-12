@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PageNavigation from '../components/PageNavigation';
 import { getWalletTransactions, payoutRequests } from '../data/seededData';
 import { WalletTransaction } from '../types';
 
@@ -68,6 +69,7 @@ export const WalletPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
+      <PageNavigation />
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>

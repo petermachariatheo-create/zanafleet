@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PageNavigation from '../components/PageNavigation';
 import { invoices, subscriptions, workspaces } from '../data/seededData';
 import { Subscription } from '../types';
 
@@ -77,6 +78,7 @@ export const BillingPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
+      <PageNavigation />
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900">Billing & Subscription</h1>

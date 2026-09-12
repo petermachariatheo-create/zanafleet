@@ -54,6 +54,15 @@ const Dashboard: React.FC = () => {
           <button style={styles.navItem} onClick={() => navigate('/contacts')}>
             👥 Contacts
           </button>
+          <button style={styles.navItem} onClick={() => navigate('/wallet')}>
+            Wallet
+          </button>
+          <button style={styles.navItem} onClick={() => navigate('/billing')}>
+            Billing
+          </button>
+          <button style={styles.navItem} onClick={() => navigate('/maps')}>
+            Maps
+          </button>
           <button style={styles.navItem} onClick={() => navigate('/reports')}>
             📈 Reports
           </button>

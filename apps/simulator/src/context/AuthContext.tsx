@@ -1,8 +1,22 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { User, Role } from '../types';
+import { Persona, Role, User } from '../types';
+
+interface SimulatorUser extends User {
+  memberships: Array<{ workspaceId: string; role: string; earnings: number; joinedAt: Date }>;
+  isAvailable: boolean;
+  walletBalance: number;
+  pendingPayouts: number;
+  totalJobs: number;
+  successRate: number;
+}
+
+const fleetWorkspaces = [
+  { workspaceId: 'ws-0001', role: 'FLEET_MANAGER', earnings: 45000, joinedAt: new Date() },
+  { workspaceId: 'ws-0002', role: 'FLEET_MANAGER', earnings: 45000, joinedAt: new Date() },
+];
 
 // Mock users for each role
-const mockUsers: Record<Role, User> = {
+const mockUsers: Record<Role, SimulatorUser> = {
   ADMIN: {
     id: 'actor-admin-001',
     name: 'Sarah Admin',
@@ -11,6 +25,17 @@ const mockUsers: Record<Role, User> = {
     workspaceId: '00000000-0000-0000-0000-000000000001',
     avatar: '👩‍💼',
     token: 'mock-admin-token',
+    memberships: [
+      ...fleetWorkspaces,
+      { workspaceId: 'ws-0003', role: 'ADMIN', earnings: 0, joinedAt: new Date() },
+      { workspaceId: 'ws-0004', role: 'ADMIN', earnings: 0, joinedAt: new Date() },
+      { workspaceId: 'ws-0005', role: 'ADMIN', earnings: 0, joinedAt: new Date() },
+    ],
+    isAvailable: true,
+    walletBalance: 0,
+    pendingPayouts: 0,
+    totalJobs: 0,
+    successRate: 100,
   },
   OPS: {
     id: 'actor-ops-001',
@@ -20,6 +45,12 @@ const mockUsers: Record<Role, User> = {
     workspaceId: '00000000-0000-0000-0000-000000000001',
     avatar: '👨‍💻',
     token: 'mock-ops-token',
+    memberships: fleetWorkspaces,
+    isAvailable: true,
+    walletBalance: 45000,
+    pendingPayouts: 0,
+    totalJobs: 120,
+    successRate: 99,
   },
   BUSINESS_OWNER: {
     id: 'actor-owner-001',
@@ -30,6 +61,15 @@ const mockUsers: Record<Role, User> = {
     avatar: '🏪',
     totalEarnings: 45000,
     token: 'mock-business-token',
+    memberships: [
+      { workspaceId: 'ws-0001', role: 'BUSINESS_OWNER', earnings: 45000, joinedAt: new Date() },
+      { workspaceId: 'ws-0004', role: 'BUSINESS_OWNER', earnings: 45000, joinedAt: new Date() },
+    ],
+    isAvailable: true,
+    walletBalance: 78000,
+    pendingPayouts: 12000,
+    totalJobs: 184,
+    successRate: 98,
   },
   RIDER: {
     id: 'actor-rider-001',
@@ -40,6 +80,15 @@ const mockUsers: Record<Role, User> = {
     avatar: '🏍️',
     totalEarnings: 12500,
     token: 'mock-rider-token',
+    memberships: [
+      { workspaceId: 'ws-0001', role: 'RIDER', earnings: 12500, joinedAt: new Date() },
+      { workspaceId: 'ws-0002', role: 'RIDER', earnings: 12500, joinedAt: new Date() },
+    ],
+    isAvailable: true,
+    walletBalance: 12500,
+    pendingPayouts: 3500,
+    totalJobs: 234,
+    successRate: 96.5,
   },
   CUSTOMER: {
     id: 'actor-customer-001',
@@ -49,15 +98,29 @@ const mockUsers: Record<Role, User> = {
     workspaceId: '00000000-0000-0000-0000-000000000001',
     avatar: '👤',
     token: 'mock-customer-token',
+    memberships: [{ workspaceId: 'ws-0005', role: 'CONTRACTOR', earnings: 0, joinedAt: new Date() }],
+    isAvailable: true,
+    walletBalance: 8900,
+    pendingPayouts: 2100,
+    totalJobs: 56,
+    successRate: 92.1,
   },
+};
+
+const personaRoles: Record<Persona, Role> = {
+  rider: 'RIDER',
+  'fleet-manager': 'OPS',
+  'business-owner': 'BUSINESS_OWNER',
+  'marketplace-contractor': 'CUSTOMER',
+  admin: 'ADMIN',
 };
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  currentUser: User | null;
+  currentUser: SimulatorUser | null;
   workspaceId: string;
   token: string | null;
-  login: (phone: string, password: string) => Promise<void>;
+  login: (persona: Persona) => void;
   logout: () => void;
   switchRole: (role: Role) => void;
 }
@@ -65,15 +128,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Default to ADMIN role for testing
-  const [currentUser, setCurrentUser] = useState<User | null>(mockUsers.ADMIN);
-  const [workspaceId, setWorkspaceId] = useState('00000000-0000-0000-0000-000000000001');
-  const [token, setToken] = useState<string | null>(mockUsers.ADMIN.token || null);
+  const [currentUser, setCurrentUser] = useState<SimulatorUser | null>(null);
+  const [workspaceId, setWorkspaceId] = useState('');
+  const [token, setToken] = useState<string | null>(null);
 
-  const login = async (_phone: string, _password: string) => {
-    // In sandbox mode, just use the ADMIN user
-    setCurrentUser(mockUsers.ADMIN);
-    setToken(mockUsers.ADMIN.token || null);
+  const login = (persona: Persona) => {
+    const user = mockUsers[personaRoles[persona]];
+    setCurrentUser(user);
+    setToken(user.token || null);
+    setWorkspaceId(user.workspaceId);
   };
 
   const logout = () => {

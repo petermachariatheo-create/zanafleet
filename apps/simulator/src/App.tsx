@@ -14,6 +14,7 @@ import { WalletPage } from './pages/Wallet';
 import { BusinessOnboarding } from './pages/business';
 import { RiderManagement } from './pages/rider';
 import OrderCreation from './pages/OrderCreation';
+import NotFound from './pages/NotFound';
 import { Role } from './types';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -174,6 +175,7 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

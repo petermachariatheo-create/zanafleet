@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PageNavigation from '../components/PageNavigation';
 import { jobs, getJobsForUser, getJobsForWorkspace, workspaces } from '../data/seededData';
 import { Job, JobStatus } from '../types';
 
@@ -61,9 +62,10 @@ export const MapsPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
+      <PageNavigation />
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Job Map</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Map View</h1>
         <p className="text-gray-500">Track jobs and driver locations</p>
       </div>
 
