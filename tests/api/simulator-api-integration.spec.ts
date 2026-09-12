@@ -19,10 +19,10 @@ test.describe('ZanaFleet API Integration Tests', () => {
 
   test.describe('Health Checks', () => {
     test('API server should be accessible', async ({ request }) => {
-      console.log(`[API TEST] Checking API health at ${API_BASE_URL}/health`);
+      console.log(`[API TEST] Checking API health at ${API_BASE_URL}${API_PREFIX}/health/live`);
 
       try {
-        const response = await request.get(`${API_BASE_URL}/health`);
+        const response = await request.get(`${API_BASE_URL}${API_PREFIX}/health/live`);
         console.log(`[API TEST] Health check status: ${response.status()}`);
 
         // Log response for debugging
@@ -408,7 +408,7 @@ test.describe('ZanaFleet API Performance Tests', () => {
   test('response time should be acceptable', async ({ request }) => {
     console.log('[PERF TEST] Testing API response times...');
 
-    const endpoints = ['/health', '/api/organizations', '/api/riders', '/api/orders'];
+    const endpoints = ['/api/health/live', '/api/organizations', '/api/riders', '/api/orders'];
 
     for (const endpoint of endpoints) {
       const url = endpoint.startsWith('/api')
